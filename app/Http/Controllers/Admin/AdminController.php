@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin\Log;
 use App\Models\Admin\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -28,5 +29,7 @@ class AdminController extends Controller
         ];
         return view('admin.logs', $pageData);
     }
+
+   
     
 }

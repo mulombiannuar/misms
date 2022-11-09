@@ -15,7 +15,7 @@
                     <th>IP ADDRESS</th>
                 </x-table.thead>
                 <tbody>
-                    @foreach ($logs as $trail)
+                    @foreach ($logs as $log)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $log->date }}</td>

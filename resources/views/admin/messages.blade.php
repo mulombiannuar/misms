@@ -7,11 +7,11 @@
             <x-table.table id="table1">
                 <x-table.thead>
                     <th>S.N</th>
-                    <th>LOGGED DATE</th>
-                    <th>RECIPIENT</th>
-                    <th width="40%">MESSAGE BODY</th>
-                    <th>MOBILE NUMBER</th>
-                    <th>TYPE</th>
+                             <th>Period</th>
+                             <th>Start Time</th>
+                             <th>End Time</th>
+                             <th>Date Created</th>
+                             <th>Delete</th>
                 </x-table.thead>
                 <tbody>
                     @foreach ($messages as $message)
