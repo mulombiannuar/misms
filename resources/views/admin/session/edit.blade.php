@@ -13,11 +13,11 @@
                 <x-form.input class="col-md-6 col-sm-12" label="Term" type="text" name="term" placeholder="Enter term"
                     value="{{ 'Term ' . $session->term }}" readonly />
 
-                <x-form.input class="col-md-6 col-sm-12" label="Opening Date ({{ $session->opening_date }})" type="date"
-                    name="opening_date" placeholder="Select opening date" value="{{ $session->opening_date }}" />
+                <x-form.input class="col-md-6 col-sm-12" label="Opening Date" type="date" name="opening_date"
+                    placeholder="Select opening date" value="{{ $session->opening_date }}" />
 
-                <x-form.input class="col-md-6 col-sm-12" label="Closing Date ({{ $session->closing_date }})" type="date"
-                    name="closing_date" placeholder="Select closing date" value="{{ $session->closing_date }}" />
+                <x-form.input class="col-md-6 col-sm-12" label="Closing Date" type="date" name="closing_date"
+                    placeholder="Select closing date" value="{{ $session->closing_date }}" />
             </x-form.form>
         </x-card>
     </x-section>
