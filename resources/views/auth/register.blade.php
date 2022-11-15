@@ -10,6 +10,7 @@
 
         <div class="card-body">
             <form method="post" action="{{ route('register') }}">
+                <input type="hidden" name="is_student" value="0">
                 @csrf
                 <div class="input-group mb-3">
                     <input type="text" name="name" class="form-control" placeholder="Full name"

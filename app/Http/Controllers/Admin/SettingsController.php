@@ -122,11 +122,12 @@ class SettingsController extends Controller
                 'updated_at' => Carbon::now(),
             ]);
         }
-        return back()->with('success', 'Default Grading data saved successfully');
 
         //Save user log
         $activity_type = 'Default Grading Creation';
         $description = 'Successfully created new default grading';
         User::saveUserLog($activity_type, $description);
+
+        return back()->with('success', 'Default Grading data saved successfully');
     }
 }

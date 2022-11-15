@@ -35,6 +35,8 @@ Route::get('clear-cache', function() {
 Route::controller(UserController::class)->middleware('auth')->group(function (){
     Route::get('dashboard', 'dashboard')->name('dashboard');
     Route::get('profile', 'profile')->name('profile');
+
+    
 });
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function(){
@@ -42,9 +44,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
     //Periods
     Route::resource('periods', PeriodController::class, ['except' => ['show']]);
 
+    // UserController
+    Route::controller(UserController::class)->group(function(){
+        Route::put('users/activate/{user}',  'activateUser')->name('users.activate');
+        Route::put('users/deactivate/{user}', 'deactivateUser')->name('users.deactivate');
+        Route::get('get-users', 'getUsers')->name('users.get');
+        Route::resource('users', UserController::class);
+    });
+    
     //SessionController
     Route::controller(SessionController::class)->group(function(){
-        //Sessions
         Route::put('sessions/activate/{session}', 'activateSession')->name('sessions.activate');
         Route::put('sessions/deactivate/{session}', 'deactivateSession')->name('sessions.deactivate');
         Route::resource('sessions', SessionController::class);
@@ -54,6 +63,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
     Route::controller(AdminController::class)->group(function(){
         Route::get('messages', 'messages')->name('messages.index');
         Route::get('logs', 'logs')->name('logs.index');
+        Route::post('get-sub-counties',  'fetchSubCounties')->name('get.subcounties');
       
     });
     

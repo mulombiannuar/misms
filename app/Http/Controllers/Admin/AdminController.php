@@ -30,6 +30,17 @@ class AdminController extends Controller
         return view('admin.logs', $pageData);
     }
 
+    public function fetchSubCounties(Request $request)
+    {
+        $county_id =  $request->input('county');
+        $subs = DB::table('sub_counties')->where('county_id', $county_id)->get();
+        $output = '<option value="">- Select Sub County -</option>'; 
+        foreach($subs as $row)
+        {
+          $output .= '<option value="'.$row->sub_id.'">'.$row->sub_name.'</option>';
+        }
+        return $output; 
+    }
    
     
 }

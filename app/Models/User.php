@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +15,7 @@ use Laratrust\Traits\LaratrustUserTrait;
 
 class User extends Authenticatable
 {
-    use LaratrustUserTrait;
-    use HasApiTokens, HasFactory, Notifiable;
+    use LaratrustUserTrait, SoftDeletes, HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -47,6 +47,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    public function profile()
+    {
+        return $this->hasOne(Profile::class, 'user_id', 'id');
+    }
+
     public static function getUserIpAddress()
     {
         if(!empty($_SERVER['HTTP_CLIENT_IP'])){
@@ -72,7 +77,6 @@ class User extends Authenticatable
             'created_at' => Carbon::now(),
             'date' => Carbon::now()
         ]);
-
     }
 
     public static function generatePassword()
@@ -87,6 +91,41 @@ class User extends Authenticatable
           $str .= $chars[random_int(0, $max)];
       
         return $str;
+    }
+
+    public static function getUsers()
+    {
+       return  User::where('accessibility', 1)
+                    ->leftJoin('profiles', 'profiles.user_id', '=', 'users.id' )
+                    ->orderBy('name', 'asc')
+                    ->get();
+    }
+
+    public static function getUsersByCategory($is_student)
+    {
+       return  User::where(['deleted_at' => null, 'accessibility'=> 1, 'is_student' => $is_student])
+                    ->leftJoin('profiles', 'profiles.user_id', '=', 'users.id' )
+                    ->orderBy('name', 'asc')
+                    ->get();
+    }
+
+    public static function getUserByMobileNumber($mobile_no)
+    {
+         return DB::table('users')
+                  ->join('profiles', 'profiles.user_id', '=', 'users.id')
+                  ->select('users.email','users.name','profiles.*')
+                  ->where(['mobile_no' => $mobile_no, 'deleted_at' => null, 'accessibility' => 1, 'status' => 1])
+                  ->first();
+    }
+
+    public static function getUserById($id)
+    {
+        return  DB::table('users')
+                 ->leftJoin('profiles', 'profiles.user_id', '=', 'users.id' )
+                 ->leftJoin('sub_counties', 'sub_counties.sub_id', '=', 'sub_county')
+                 ->leftJoin('counties', 'counties.county_id', '=', 'profiles.county')
+                 ->where(['id' => $id, 'deleted_at' => null, 'accessibility' => 1,'status' => 1])
+                 ->first();
     }
 
 }
