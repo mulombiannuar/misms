@@ -63,6 +63,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
     Route::controller(AdminController::class)->group(function(){
         Route::get('messages', 'messages')->name('messages.index');
         Route::get('logs', 'logs')->name('logs.index');
+        Route::get('get-logs', 'getLogs')->name('get-logs');
         Route::post('get-sub-counties',  'fetchSubCounties')->name('get.subcounties');
       
     });

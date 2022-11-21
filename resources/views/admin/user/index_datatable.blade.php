@@ -8,15 +8,15 @@
                 <x-buttons.button class="margin mb-2  btn-secondary" buttonName="Add New User" buttonIcon="fa-plus" />
             </a>
         </div>
-        <x-card class="card-primary" icon="fa-users" title="Manage Users">
+        <x-card class="card-primary" icon="fa-users" title="Manage Users ({{ $users }})">
             <x-table.table id="datatable">
                 <x-table.thead>
                     <th>S.N</th>
                     <th>NAMES</th>
                     <th>EMAIL ADDRESS</th>
                     <th>CREATED AT</th>
-                    <th>UPDATED AT</th>
-                    <th>ACTION</th>
+                    <th>STS</th>
+                    <th>ACTIONS</th>
                 </x-table.thead>
             </x-table.table>
         </x-card>
@@ -49,15 +49,18 @@
                         name: 'created_at'
                     },
                     {
-                        data: 'updated_at',
-                        name: 'updated_at'
+                        data: 'action_view',
+                        name: 'action_view',
+                        orderable: false,
+                        searchable: false
                     },
                     {
                         data: 'action',
                         name: 'action',
                         orderable: false,
                         searchable: false
-                    }
+                    },
+
                 ]
             });
         });

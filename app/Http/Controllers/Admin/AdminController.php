@@ -7,6 +7,7 @@ use App\Models\Admin\Log;
 use App\Models\Admin\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
 
 class AdminController extends Controller
 {
@@ -30,6 +31,12 @@ class AdminController extends Controller
         return view('admin.logs', $pageData);
     }
 
+    public function getLogs()
+    {
+        $logs = Log::getLogs();
+        return DataTables::of($logs)->addIndexColumn()->make(true);
+    }
+
     public function fetchSubCounties(Request $request)
     {
         $county_id =  $request->input('county');
@@ -41,6 +48,5 @@ class AdminController extends Controller
         }
         return $output; 
     }
-   
-    
+      
 }

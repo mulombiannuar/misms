@@ -95,10 +95,10 @@ class User extends Authenticatable
 
     public static function getUsers()
     {
-       return  User::where('accessibility', 1)
-                    ->leftJoin('profiles', 'profiles.user_id', '=', 'users.id' )
-                    ->orderBy('name', 'asc')
-                    ->get();
+       return  DB::table('users')
+                 ->where(['deleted_at' => null, 'accessibility'=> 1])
+                 ->orderBy('name', 'asc')
+                 ->get();
     }
 
     public static function getUsersByCategory($is_student)

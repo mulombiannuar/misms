@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Models\Profile;
 use App\Models\User;
+use App\Utilities\Buttons;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -42,24 +43,33 @@ class UserController extends Controller
         $pageData = [
 			'page_name' => 'users',
             'title' => 'Manage Users',
-            'users' => []
+            'users' => count(User::getUsers())
         ];
         return view('admin.user.index_datatable', $pageData);
     }
 
 
-    public function getUsers(Request $request)
+    public function getUsers()
     {
-        $users = User::select(['id', 'name', 'email', 'password', 'created_at', 'updated_at']);
-
+        $users = User::getUsers();
         return Datatables::of($users)
+                        ->addIndexColumn()
                         ->addColumn('action', function ($user) {
-                            return '<a href="#edit-'.$user->id.'" class="btn btn-xs btn-primary"><i class="glyphicon glyphicon-edit"></i> Edit</a>';
-                                    })
-                        ->removeColumn('password')
+                            return Buttons::dataTableButtons(
+                                route('admin.users.show', $user->id),
+                                route('admin.users.edit', $user->id),
+                                route('admin.users.destroy', $user->id),
+                            );
+                        })
+                        ->addColumn('action_view', function ($user) {
+                            return Buttons::activateDeactivateButton(
+                                $user->status, 
+                                route('admin.users.activate', $user->id),
+                                route('admin.users.deactivate', $user->id)
+                            );
+                        })
+                        ->rawColumns(['action','action_view'])
                         ->make(true);
-
-        return Datatables::of(User::query())->make(true);
     }
 
     /**
@@ -185,13 +195,13 @@ class UserController extends Controller
      * @param  \App\Models\User  $user
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User $user)
+    public function destroy($id)
     {
-        $user->delete();
+        User::destroy($id);
 
         //Save audit trail
         $activity_type = 'User Deletion';
-        $description = 'Deleted the user '.$user->name;
+        $description = 'Deleted the user of id '.$id;
         User::saveUserLog($activity_type, $description);
 
         return redirect(route('admin.users.index'))->with('success' , 'User deleted successfully');
