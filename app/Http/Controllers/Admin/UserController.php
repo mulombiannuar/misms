@@ -6,6 +6,7 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
 use App\Models\Profile;
+use App\Models\Role;
 use App\Models\User;
 use App\Utilities\Buttons;
 use Illuminate\Http\Request;
@@ -152,6 +153,8 @@ class UserController extends Controller
             'page_name' => 'users',
             'user' => User::getUserById($id),
             'title' => 'Edit User Profile Information',
+            'user_roles' => Role::getUserRoles($id),
+            'roles' => DB::table('roles')->orderBy('name', 'asc')->get(),
             'counties' => DB::table('counties')->orderBy('county_name', 'asc')->get(),
         ];
         return view('admin.user.edit', $pageData);
@@ -232,6 +235,25 @@ class UserController extends Controller
         User::saveUserLog($activity_type, $description);
 
         return back()->with('success', 'User deactivated successfully');  
+    }
+
+    public function storeUserRole(Request $request)
+    {
+        if(empty($request->input('roles')))
+        return back()->with('danger', 'You have not selected any role. Please try again');
+
+        $user = User::find($request->input('user_id'));
+
+        //Delete existing role
+       // DB::table('role_user')->where('user_id', $request->input('user_id'))->delete();
+        $user->syncRoles($request->input('roles'), $request->input('user_id'));
+
+        //Save audit trail
+        $activity_type = 'Assigned User Role';
+        $description = 'Assigned system roles to  '.$user->name;
+        User::saveUserLog($activity_type, $description);
+
+        return back()->with('success', 'User has been succesfully assigned selected roles');
     }
 
     public function profile()

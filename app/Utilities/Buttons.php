@@ -13,7 +13,7 @@ class Buttons
                     <a href="'.$viewRoute.'" class="btn btn-xs btn-info"><i class="fa fa-bars"></i> Show</a>
                 </div>
                 <div class="btn-group">
-                    <a href="'.$editRoute.'/edit" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Edit</a>
+                    <a href="'.$editRoute.'" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Edit</a>
                 </div>
                 <div class="btn-group">
                     <form action="'.$deleteRoute.'" method="post">

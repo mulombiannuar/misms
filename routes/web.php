@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Academic\FormController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\PeriodController;
 use App\Http\Controllers\Admin\SessionController;
@@ -44,10 +45,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
     //Periods
     Route::resource('periods', PeriodController::class, ['except' => ['show']]);
 
+    //Forms
+    Route::resource('forms', FormController::class, ['except' => ['show']]);
+
     // UserController
     Route::controller(UserController::class)->group(function(){
         Route::put('users/activate/{user}',  'activateUser')->name('users.activate');
         Route::put('users/deactivate/{user}', 'deactivateUser')->name('users.deactivate');
+        Route::post('users/store-role',  'storeUserRole')->name('users.storerole');
         Route::get('get-users', 'getUsers')->name('users.get');
         Route::resource('users', UserController::class);
     });
