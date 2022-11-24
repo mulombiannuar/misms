@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Academic\Section;
 use App\Models\Admin\Log;
 use App\Models\Admin\Message;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -48,5 +50,5 @@ class AdminController extends Controller
         }
         return $output; 
     }
-      
+
 }

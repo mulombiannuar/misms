@@ -58,19 +58,19 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('admin.sections.index') }}" class="nav-link">
                                 <i class="fa fa-arrow-right nav-icon"></i>
                                 <p>Sections</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('admin.subjects.index') }}" class="nav-link">
                                 <i class="fa fa-arrow-right nav-icon"></i>
                                 <p>Subjects</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('admin.subject-teachers.index') }}" class="nav-link">
                                 <i class="fa fa-arrow-right nav-icon"></i>
                                 <p>Subject Teachers</p>
                             </a>
@@ -78,29 +78,14 @@
                     </ul>
                 </li>
 
-                <li class="nav-item has-treeview">
+                <li class="nav-item">
                     <a href="{{ route('admin.users.index') }}"
                         class="nav-link {{ $page_name == 'users' ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-users"></i>
+                        <i class="fa fa-users nav-icon"></i>
                         <p>
                             Users Management
-                            <i class="fas fa-angle-left right"></i>
                         </p>
                     </a>
-                    <ul class="nav nav-treeview">
-                        <li class="nav-item">
-                            <a href="{{ route('admin.users.index') }}" class="nav-link">
-                                <i class="fa fa-arrow-right nav-icon"></i>
-                                <p>Manage Users</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="fa fa-arrow-right nav-icon"></i>
-                                <p>User Roles</p>
-                            </a>
-                        </li>
-                    </ul>
                 </li>
 
                 <li class="nav-item">

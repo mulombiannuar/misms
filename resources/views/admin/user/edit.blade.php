@@ -115,12 +115,75 @@
 
                             <div class="tab-pane" id="subjects">
                                 <!-- roles user -->
-                                <div class="card card-warning">
+                                <div class="card card-info">
                                     <div class="card-header">
                                         <h3 class="card-title"><i class="fa fa-graduation-cap"></i> Subjects</h3>
                                     </div>
                                     <div class="card-body">
-                                        Subjects
+                                        <x-form.form action="{{ route('admin.subject-teachers.store') }}" method="post"
+                                            buttonName="Assign New Subject" buttonIcon="fa-user-plus"
+                                            buttonClass="btn-info">
+                                            <input type="hidden" name="user_id" value="{{ $user->id }}">
+
+                                            <x-form.select class="col-md-4 col-sm-6" value="" label="Class*"
+                                                name="form_numeric" id="form_numeric">
+                                                @foreach ($forms as $form)
+                                                    <option value="{{ $form->form_numeric }}">
+                                                        {{ $form->form_name }}</option>
+                                                @endforeach
+                                            </x-form.select>
+
+                                            <x-form.select class="col-md-4 col-sm-6" value="" label="Sections*"
+                                                name="section" name="section" />
+
+                                            <x-form.select class="col-md-4 col-sm-6" value="" label="Subjects*"
+                                                name="subject">
+                                                @foreach ($subjects as $subject)
+                                                    <option value="{{ $subject->subject_id }}">
+                                                        {{ $subject->subject_name }}</option>
+                                                @endforeach
+                                            </x-form.select>
+
+                                        </x-form.form>
+                                        <div class="row">
+                                            <div class="container">
+                                                @if (count($a_subjects) == 0)
+                                                    <div class="alert alert-danger">
+                                                        <i class="fa fa-exclamation-circle"></i> You dont have any subject
+                                                        assigned to you. Kindly contact system
+                                                        administrator
+                                                    </div>
+                                                @else
+                                                    <x-table.table id="table1">
+                                                        <x-table.thead>
+                                                            <th>S.N</th>
+                                                            <th>Code</th>
+                                                            <th>Name</th>
+                                                            <th>Class</th>
+                                                            <th>Date Created</th>
+                                                            <th>Actions</th>
+                                                        </x-table.thead>
+                                                        <tbody>
+                                                            @foreach ($a_subjects as $subject)
+                                                                <tr>
+                                                                    <td>{{ $loop->iteration }}</td>
+                                                                    <td>{{ $subject->subject_code }}</td>
+                                                                    <td>{{ $subject->subject_name }}</td>
+                                                                    <td>{{ $subject->section_numeric . $subject->section_name }}
+                                                                    </td>
+                                                                    <td>{{ $subject->created_at }}</td>
+                                                                    <td>
+                                                                        <x-buttons.delete
+                                                                            action="{{ route('admin.subject-teachers.destroy', $subject->sub_id) }}"
+                                                                            btnSize="btn-xs" />
+                                                                    </td>
+                                                                </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </x-table.table>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
                                     <!-- /.card-body -->
                                 </div>
@@ -168,6 +231,35 @@
                 }
             });
 
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#form_numeric').change(function() {
+                form_numeric = $('#form_numeric').val();
+                if (form_numeric != '') {
+                    $.ajax({
+                        url: "{{ route('get.formsections') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        type: "POST",
+                        data: {
+                            form_numeric: form_numeric
+                        },
+                        success: function(data) {
+                            console.log(data);
+                            $('#section').html(data);
+                        },
+                        error: function(xhr, desc, err) {
+                            console.log(xhr);
+                            //console.log("Details0: " + desc + "\nError:" + err);
+                        },
+                    });
+                } else {
+                    $('#section').html('<option value="">Select Class Section</option>');
+                }
+            });
         });
     </script>
 @endpush

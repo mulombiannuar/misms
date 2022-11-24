@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Fortify\CreateNewUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
+use App\Models\Academic\Form;
+use App\Models\Academic\Section;
+use App\Models\Academic\Subject;
+use App\Models\Academic\SubjectTeacher;
 use App\Models\Profile;
 use App\Models\Role;
 use App\Models\User;
@@ -149,11 +153,17 @@ class UserController extends Controller
     public function edit($id)
     {
         //return User::getUserById($id);
+        $user = User::getUserById($id);
+        $subjectTeacher = new SubjectTeacher();
         $pageData = [
             'page_name' => 'users',
-            'user' => User::getUserById($id),
-            'title' => 'Edit User Profile Information',
+            'user' => $user,
+            'title' => ucwords($user->name.'-'.$user->email),
+            'users' => User::getUsersByCategory(0),
             'user_roles' => Role::getUserRoles($id),
+            'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
+            'a_subjects' => $subjectTeacher->getTeacherSubjects($id),
+            'subjects' => Subject::orderBy('subject_name', 'asc')->get(),
             'roles' => DB::table('roles')->orderBy('name', 'asc')->get(),
             'counties' => DB::table('counties')->orderBy('county_name', 'asc')->get(),
         ];
@@ -315,6 +325,36 @@ class UserController extends Controller
             return 'admin.user.teacher_dashboard';
          }
         return 'admin.user.user_dashboard';
+    }
+
+    public function fetchFormSections(Request $request)
+    {
+        $form_numeric =  $request->input('form_numeric');
+        $sections = Section::where('section_numeric', $form_numeric)->get();
+        $output = '<option value="">- Select Section Below -</option>'; 
+        foreach($sections as $row)
+        {
+          $output .= '<option value="'.$row['section_id'].'">'.$row['section_numeric'].$row['section_name'].'</option>';
+        }
+        return $output; 
+    }
+
+    public function fetchTeacherSections(Request $request)
+    {
+        $form_numeric =  $request->input('form_numeric');
+        $sections = Section::where([
+          'section_teacher' => Auth::user()->id, 
+          'section_numeric' => $form_numeric])
+          ->get();
+        $output = '<option value="">- Select Section Below -</option>'; 
+        if ($sections->count() == 0) 
+        $output = '<option value="">- No Section Available -</option>';
+
+        foreach($sections as $row)
+        {
+          $output .= '<option value="'.$row['section_id'].'">'.$row['section_numeric'].$row['section_name'].'</option>';
+        }
+        return $output; 
     }
 
     ////////////..end....///////////
