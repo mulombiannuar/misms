@@ -95,7 +95,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
+                            <a href="{{ route('admin.overall-grading.index') }}" class="nav-link">
                                 <i class="fa fa-arrow-right nav-icon"></i>
                                 <p>Overall Grading</p>
                             </a>
@@ -158,6 +158,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('admin.periods.index') }}" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Lesson Periods</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('admin.sessions.index') }}" class="nav-link">
                                 <i class="fa fa-arrow-right nav-icon"></i>
                                 <p>Sessions</p>
@@ -170,15 +176,15 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('admin.periods.index') }}" class="nav-link">
+                            <a href="#" class="nav-link">
                                 <i class="fa fa-arrow-right nav-icon"></i>
-                                <p>Lesson Periods</p>
+                                <p>System Backups</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="fa fa-arrow-right nav-icon"></i>
-                                <p>Notifications</p>
+                                <p>Reset System</p>
                             </a>
                         </li>
                     </ul>

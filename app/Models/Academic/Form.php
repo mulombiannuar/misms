@@ -25,5 +25,13 @@ class Form extends Model
          
          return $gradings;
      }
+
+        //Get overall grading
+    public function overallGradings($form_numeric)
+    {
+        $gradings = [];
+        $gradings = OverallGrading::where(['form_numeric' => $form_numeric])->get();
+        return $gradings;
+    }
  
 }

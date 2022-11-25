@@ -206,6 +206,7 @@
                                                                                                 pattern="^\d+(?:\.\d{1,2})?$"
                                                                                                 onKeyPress="if(this.value.length==5) return false;"
                                                                                                 name="min_score[]"
+                                                                                                value="{{ $grade->min_score }}"
                                                                                                 class="form-control"
                                                                                                 id="exampleInputText1"
                                                                                                 placeholder="Min score"
@@ -224,6 +225,7 @@
                                                                                                 pattern="^\d+(?:\.\d{1,2})?$"
                                                                                                 onKeyPress="if(this.value.length==3) return false;"
                                                                                                 name="max_score[]"
+                                                                                                value="{{ $grade->max_score }}"
                                                                                                 class="form-control"
                                                                                                 id="exampleInputText1"
                                                                                                 placeholder="Max score"
@@ -238,6 +240,7 @@
                                                                                             @endif
                                                                                             <input type="text"
                                                                                                 name="score_remarks[]"
+                                                                                                value="{{ $grade->score_remarks }}"
                                                                                                 class="form-control"
                                                                                                 id="exampleInputText1"
                                                                                                 placeholder="Remarks"

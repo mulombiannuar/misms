@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Academic\FormController;
+use App\Http\Controllers\Academic\OverallGradingController;
 use App\Http\Controllers\Academic\SectionController;
 use App\Http\Controllers\Academic\SubjectController;
 use App\Http\Controllers\Academic\SubjectGradingController;
@@ -62,7 +63,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
     Route::resource('subject-teachers', SubjectTeacherController::class)->only(['index', 'store', 'destroy']);
 
     //SubjectGradingController
-    Route::resource('subject-grading', SubjectGradingController::class, ['except' => ['show', 'create', 'edit']]);
+    Route::resource('subject-grading', SubjectGradingController::class, ['only' => ['index','store']]);
+
+    //OverallGradingController
+    Route::resource('overall-grading', OverallGradingController::class, ['only' => ['index','store']]);
 
     // UserController
     Route::controller(UserController::class)->group(function(){
