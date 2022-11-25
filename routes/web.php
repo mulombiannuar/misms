@@ -3,6 +3,7 @@
 use App\Http\Controllers\Academic\FormController;
 use App\Http\Controllers\Academic\SectionController;
 use App\Http\Controllers\Academic\SubjectController;
+use App\Http\Controllers\Academic\SubjectGradingController;
 use App\Http\Controllers\Academic\SubjectTeacherController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\PeriodController;
@@ -41,8 +42,6 @@ Route::controller(UserController::class)->middleware('auth')->group(function (){
     Route::get('profile', 'profile')->name('profile');
     Route::post('get-teacher-sections',  'fetchTeacherSections')->name('get.teachersections');
     Route::post('get-form-sections',  'fetchFormSections')->name('get.formsections');
-
-    
 });
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function(){
@@ -61,6 +60,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
 
     //Subject teachers
     Route::resource('subject-teachers', SubjectTeacherController::class)->only(['index', 'store', 'destroy']);
+
+    //SubjectGradingController
+    Route::resource('subject-grading', SubjectGradingController::class, ['except' => ['show', 'create', 'edit']]);
 
     // UserController
     Route::controller(UserController::class)->group(function(){
@@ -84,8 +86,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
         Route::get('logs', 'logs')->name('logs.index');
         Route::get('get-logs', 'getLogs')->name('get-logs');
         Route::post('get-sub-counties',  'fetchSubCounties')->name('get.subcounties');
-       
-      
     });
     
     //SettingsController
