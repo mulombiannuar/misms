@@ -103,6 +103,37 @@
                     </ul>
                 </li>
 
+                <li class="nav-item has-treeview">
+                    <a href="{{ route('hostel.hostels.index') }}"
+                        class="nav-link {{ $page_name == 'hostels' ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-building"></i>
+                        <p>
+                            Hostels Management
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('hostel.hostels.index') }}" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Hostels</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('hostel.rooms.index') }}" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Rooms</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Bed Spaces</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
                 <li class="nav-item">
                     <a href="{{ route('admin.users.index') }}"
                         class="nav-link {{ $page_name == 'users' ? 'active' : '' }}">

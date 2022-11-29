@@ -11,6 +11,8 @@ use App\Http\Controllers\Admin\PeriodController;
 use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Hostel\HostelController;
+use App\Http\Controllers\Hostel\RoomController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +70,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
     //OverallGradingController
     Route::resource('overall-grading', OverallGradingController::class, ['only' => ['index','store']]);
 
+
     // UserController
     Route::controller(UserController::class)->group(function(){
         Route::put('users/activate/{user}',  'activateUser')->name('users.activate');
@@ -110,4 +113,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
 Route::middleware(['auth'])->prefix('account')->name('account.')->group(function(){
     Route::put('password', [UserController::class, 'passwordChange'])->name('password.change');
     Route::get('password', [UserController::class, 'password'])->name('password');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('hostel')->name('hostel.')->group(function(){
+   
+    //Hostels 
+    Route::resource('hostels', HostelController::class);
+
+    //Rooms 
+    Route::resource('rooms', RoomController::class, ['except' => ['edit', 'create']]);
 });
