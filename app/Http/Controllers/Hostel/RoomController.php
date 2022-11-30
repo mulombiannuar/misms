@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Hostel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreRoomRequest;
 use App\Http\Requests\UpdateRoomRequest;
+use App\Models\Hostel\BedSpace;
 use App\Models\Hostel\Room;
 use App\Models\Hostel\StudentRoom;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
 
 class RoomController extends Controller
 {
@@ -67,6 +69,7 @@ class RoomController extends Controller
             'room' => $room,
 			'page_name' => 'hostels',
             'title' => ucwords($room->room_label.' Manage Students'),
+            'beds' => BedSpace::getBedSpacesByRoomId($id),
             'students' => Room::getStudentsRoomById($id),
         ];
         return view('admin.hostel.room.show', $pageData);
@@ -105,6 +108,7 @@ class RoomController extends Controller
     public function destroy($id)
     {
         Room::where('room_id', $id)->delete();
+        BedSpace::where('room_id', $id)->delete();
         StudentRoom::where('room_id', $id)->delete();
 
         //Save audit trail
@@ -114,4 +118,63 @@ class RoomController extends Controller
     
         return back()->with('success', 'Room data and associated occupants deleted successfully');
     }
+
+    public function bedSpaces()
+    {
+        $pageData = [
+			'page_name' => 'hostels',
+            'title' => 'Manage Bed Spaces',
+            'rooms' => Room::getRooms(),
+        ];
+        return view('admin.hostel.room.bed_spaces', $pageData);
+    }
+
+    public function getBedSpaces()
+    {
+        $beds = BedSpace::getBedSpaces();
+        return DataTables::of($beds)->addIndexColumn()->make(true); 
+    }
+
+    public function saveBedSpace(Request $request)
+    {
+        $request->validate([
+            'room_id' => 'required|integer',
+            'space_label' => 'max:255|required|string|unique:bed_spaces'
+        ]);
+        
+        $room_id = $request->input('room_id');
+        $room = Room::find($room_id);
+        $occupiedRooms = BedSpace::where('room_id', $room_id)->count();
+
+        if($occupiedRooms >= $room->room_capacity)
+        return back()->with('warning', 'Number of available bed spaces cannot exceed room capacity which is set to'. $room->room_capacity. '. You can instead adjust room capacity value');
+        
+        $bed = new BedSpace();
+        $bed->room_id = $request->input('room_id'); 
+        $bed->hostel_id = $room->hostel_id; 
+        $bed->space_label = $request->input('space_label'); 
+        $bed->created_by = Auth::user()->id; 
+        $bed->save();
+
+        //Save audit trail
+        $activity_type = 'Bed Space Label Creation';
+        $description = 'Created new bed space label  '.$bed->space_label;
+        User::saveUserLog($activity_type, $description);
+
+        return back()->with('success', 'New bed space label saved successfully');
+    }
+
+    public function deleteBedSpace($id)
+    {
+        BedSpace::where('bed_id', $id)->delete();
+        StudentRoom::where('bed_id', $id)->delete();
+
+        //Save audit trail
+        $activity_type = 'Bed Space Deletion';
+        $description = 'Deleted existing bed space of id '.$id;
+        User::saveUserLog($activity_type, $description);
+    
+        return back()->with('success', 'Bed space data and associated occupants deleted successfully');
+    }
+
 }

@@ -24,7 +24,7 @@ class StoreRoomRequest extends FormRequest
     public function rules()
     {
         return [
-            'room_label' => 'required',
+            'room_label' => 'required|unique:rooms',
             'hostel_id' => 'required|integer',
             'room_capacity' => 'required',
         ];

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Hostel;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreHostelRequest;
 use App\Http\Requests\UpdateHostelRequest;
+use App\Models\Hostel\BedSpace;
 use App\Models\Hostel\Hostel;
 use App\Models\Hostel\Room;
 use App\Models\Hostel\StudentRoom;
@@ -24,7 +25,7 @@ class HostelController extends Controller
         $pageData = [
 			'page_name' => 'hostels',
             'title' => 'Manage Hostels',
-            'hostels' => Hostel::getHostels(),
+            'hostels' => Hostel::getHostelsDetails(),
         ];
         return view('admin.hostel.index', $pageData);
     }
@@ -138,6 +139,7 @@ class HostelController extends Controller
     {
         Hostel::where('hostel_id', $id)->delete();
         Room::where('hostel_id', $id)->delete();
+        BedSpace::where('hostel_id', $id)->delete();
         StudentRoom::where('hostel_id', $id)->delete();
 
         //Save audit trail

@@ -52,6 +52,6 @@ class Room extends Model
 
     public static function getStudentsRoomById($id)
     {
-      
+       return [];
     }
 }

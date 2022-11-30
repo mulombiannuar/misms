@@ -14,7 +14,9 @@
                     <th>C.N</th>
                     <th>NAMES</th>
                     <th>H.MASTER</th>
+                    <th>ROOMS</th>
                     <th>CAPACITY</th>
+                    <th>BEDS</th>
                     <th>CREATED AT</th>
                     <th>ACTIONS</th>
                 </x-table.thead>
@@ -24,7 +26,9 @@
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ ucwords($hostel->hostel_name) }}</td>
                             <td>{{ ucwords($hostel->name) }}</td>
-                            <td>{{ $hostel->hostel_capacity }}</td>
+                            <td>{{ $hostel->totalRooms }}</td>
+                            <td>{{ $hostel->totalCapacity }}</td>
+                            <td>{{ $hostel->totalBeds }}</td>
                             <td>{{ $hostel->created_at }}</td>
                             <td>
                                 <a href="{{ route('hostel.hostels.edit', $hostel->hostel_id) }}">

@@ -24,6 +24,19 @@ class Hostel extends Model
                 ->get();
     }
 
+    public static function getHostelsDetails()
+    {
+       $hostels = Hostel::getHostels();
+       for ($s=0; $s <count($hostels) ; $s++) 
+       { 
+            $hostels[$s]->totalCapacity = StudentRoom::where('hostel_id', $hostels[$s]->hostel_id)->count();
+            $hostels[$s]->totalBeds =  BedSpace::where('hostel_id', $hostels[$s]->hostel_id)->count();
+            $hostels[$s]->totalRooms = Room::where('hostel_id', $hostels[$s]->hostel_id)->count();
+       }
+       return $hostels;
+    }
+
+
     public static function findHostelById($id)
     {
         return DB::table('hostels')
