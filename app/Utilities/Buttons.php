@@ -28,6 +28,21 @@ class Buttons
            ';
     }
 
+    public static function resetButton($route)
+    {
+        return '
+            <div class="btn-group">
+            <form action="'.$route.'" method="post">
+            <input type="hidden" name="_method" value="PUT">
+            <input type="hidden" name="_token" value="'.csrf_token().'">  
+                <button type="submit" class="btn btn-xs btn-secondary"><i
+                class="fa fa-plus-circle"></i> Reset
+                </button>
+            </form>
+            </div>
+        ';
+    }
+
     public static function activateDeactivateButton($status, $activateRoute, $deactivateRoute)
     {
         $buttons = new Buttons;

@@ -66,7 +66,7 @@ class SettingsController extends Controller
         return back()->with('success', 'School data saved succesfully');
     }
    
-    private function getSchoolDetails()
+    public function getSchoolDetails()
     {
         $details = DB::table('school_details')->first();
         if ($details) {

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Hostel\HostelController;
 use App\Http\Controllers\Hostel\RoomController;
+use App\Http\Controllers\Student\StudentController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -127,5 +128,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('hostel')->name('hostel.')->gr
         Route::post('save-space', 'saveBedSpace')->name('rooms.save-space');
         Route::delete('delete-space/{id}', 'deleteBedSpace')->name('rooms.delete-space');
         Route::resource('rooms', RoomController::class, ['except' => ['edit', 'create']]);
+    });
+});
+
+
+Route::middleware(['auth', 'role:admin'])->prefix('students')->name('students.')->group(function(){
+   
+    //Students
+    Route::controller(StudentController::class)->group(function(){
+        Route::put('students/update-photo/{id}',  'updateStudentPhoto')->name('update-photo');
+        Route::put('students/reset-password/{id}',  'resetPassword')->name('reset-password');
+        Route::get('get-students',  'getStudents')->name('get.students');
+        Route::resource('students', StudentController::class);
     });
 });

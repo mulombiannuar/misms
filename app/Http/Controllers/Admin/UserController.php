@@ -217,7 +217,7 @@ class UserController extends Controller
         $description = 'Deleted the user of id '.$id;
         User::saveUserLog($activity_type, $description);
 
-        return redirect(route('admin.users.index'))->with('success' , 'User deleted successfully');
+        return back()->with('success' , 'User deleted successfully');
     }
 
     
@@ -329,8 +329,8 @@ class UserController extends Controller
 
     public function fetchFormSections(Request $request)
     {
-        $form_numeric =  $request->input('form_numeric');
-        $sections = Section::where('section_numeric', $form_numeric)->get();
+        $section_numeric =  $request->input('section_numeric');
+        $sections = Section::where('section_numeric', $section_numeric)->get();
         $output = '<option value="">- Select Section Below -</option>'; 
         foreach($sections as $row)
         {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Student\Student;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -50,6 +51,11 @@ class User extends Authenticatable
     public function profile()
     {
         return $this->hasOne(Profile::class, 'user_id', 'id');
+    }
+
+    public function student()
+    {
+        return $this->hasOne(Student::class, 'student_user_id', 'id');
     }
 
     public static function getUserIpAddress()
