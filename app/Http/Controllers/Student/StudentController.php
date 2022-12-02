@@ -9,8 +9,12 @@ use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentPhotoRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Academic\Form;
+use App\Models\Academic\Subject;
 use App\Models\Hostel\Hostel;
+use App\Models\Student\Parents;
 use App\Models\Student\Student;
+use App\Models\Student\StudentParent;
+use App\Models\Student\StudentSubject;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -164,12 +168,17 @@ class StudentController extends Controller
     public function edit($id)
     {
         $student = Student::getStudentById($id);
+        $user = User::find($id);
         $pageData = [
             'user' => $student,
 			'page_name' => 'students',
             'title' => ucwords($student->name.'-'.$student->admission_no),
+            's_subjects' => $user->subjects,
+            'parents' => Parents::orderBy('name', 'asc')->get(),
             'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
             'hostels' => Hostel::orderBy('hostel_name', 'asc')->get(),
+            'subjects' => Subject::orderBy('optionality', 'asc')->get(),
+            's_parents' => StudentParent::getStudentParents($student->student_id),
             'counties' => DB::table('counties')->orderBy('county_name', 'asc')->get(),
         ];
         return view('admin.student.edit', $pageData);
@@ -280,6 +289,33 @@ class StudentController extends Controller
         User::saveUserLog($activity_type, $description);
 
         return back()->with('success', 'Password changed successfully for the student. The new password is Student@123');
+    }
+
+    public function storeStudentSubjects(Request $request)
+    {
+        $request->validate([
+            'student_id' => 'required|integer',
+            'subjects' => 'required|array'
+        ]);
+
+        StudentSubject::where('student_id', $request->student_id)->delete();
+        $student = Student::where('student_user_id', $request->student_id)->first();
+        
+        $subjects = $request->input('subjects');
+        for ($sub=0; $sub <count($subjects) ; $sub++) {
+            DB::table('student_subjects')->insert([
+                'status' => 1,
+                'subject_id' => $subjects[$sub], 
+                'student_id' => $student->student_user_id,
+                // 'section_id' => $student->section_id
+            ]); 
+        }
+        //Save user log
+        $activity_type = 'Student Subjects Saving';
+        $description = 'Successfully added subjects for the student with adm no '.$student->admission_no;
+        User::saveUserLog($activity_type, $description);
+
+        return back()->with('success', 'Selected subjects succesfully attached to '.$student->name);
     }
 
     private function setStudentPassword()

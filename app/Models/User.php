@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Academic\Subject;
 use App\Models\Student\Student;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -57,6 +58,11 @@ class User extends Authenticatable
     {
         return $this->hasOne(Student::class, 'student_user_id', 'id');
     }
+
+    public function subjects()
+     {
+         return $this->belongsToMany(Subject::class, 'student_subjects', 'student_id', 'subject_id');
+     }
 
     public static function getUserIpAddress()
     {

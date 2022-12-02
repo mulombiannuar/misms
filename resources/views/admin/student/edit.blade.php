@@ -1,4 +1,4 @@
-@extends('layouts.app.form')
+@extends('layouts.app.table')
 
 @section('content')
     <!-- Main content -->
@@ -13,7 +13,7 @@
                             <li class="nav-item"><a class="nav-link" href="#subjects" data-toggle="tab"><i
                                         class="fa fa-graduation-cap"></i> Subjects</a></li>
                             <li class="nav-item"><a class="nav-link" href="#parents" data-toggle="tab"><i
-                                        class="fa fa-users"></i> Parents</a></li>
+                                        class="fa fa-users"></i> Student Parents</a></li>
                             <li class="nav-item"><a class="nav-link" href="#documents" data-toggle="tab"><i
                                         class="fa fa-list"></i>
                                     Documents</a></li>
@@ -134,8 +134,6 @@
                                                     type="text" name="extra" placeholder="Co curricular activities"
                                                     value="{{ $user->extra }}" />
 
-
-
                                                 <x-form.input class="col-md-4 col-sm-6" label="Primary School"
                                                     type="text" name="primary_school" placeholder="Primary School"
                                                     value="{{ $user->primary_school }}" />
@@ -175,7 +173,64 @@
                                         <h3 class="card-title"><i class="fa fa-graduation-cap"></i> Subjects</h3>
                                     </div>
                                     <div class="card-body">
-                                        Subjects
+                                        <div class="row">
+                                            <div class="col-md-4 col-sm-12">
+                                                <x-form.form action="{{ route('students.store-subjects') }}"
+                                                    method="post" buttonName="Assign Subjects" buttonIcon="fa-user-edit"
+                                                    buttonClass="btn-secondary">
+                                                    <input type="hidden" name="student_id" value="{{ $user->id }}">
+                                                    <div class="col-m-12">
+                                                        <div class="form-group">
+                                                            @foreach ($subjects as $subject)
+                                                                <div class="form-check">
+                                                                    @if (count($s_subjects) != 0)
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                            name="subjects[]"
+                                                                            value="{{ $subject->subject_id }}"
+                                                                            @if ($s_subjects->pluck('subject_id')->contains($subject->subject_id)) checked @endif>
+                                                                    @else
+                                                                        <input class="form-check-input" type="checkbox"
+                                                                            name="subjects[]"
+                                                                            value="{{ $subject->subject_id }}"
+                                                                            @if ($subject->optionality == 'Compulsory') checked @endif>
+                                                                    @endif
+                                                                    <label
+                                                                        class="form-check-label">{{ ucwords($subject->subject_name) }}</label>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                </x-form.form>
+                                            </div>
+                                            <div class="col-md-8 col-sm-12">
+                                                @if (count($s_subjects) == 0)
+                                                    <div class="alert alert-warning">
+                                                        No subjects are assigned to this student
+                                                    </div>
+                                                @else
+                                                    <table class="table table-sm table-striped table-bordered table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>S.N</th>
+                                                                <th width="50%">Name</th>
+                                                                <th>Abbr.</th>
+                                                                <th>Code</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach ($s_subjects as $subject)
+                                                                <tr>
+                                                                    <td>{{ $loop->iteration }}</td>
+                                                                    <td><strong>{{ $subject->subject_name }}</strong></td>
+                                                                    <td>{{ $subject->subject_short }}</td>
+                                                                    <td>{{ $subject->subject_code }}</td>
+                                                                </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
                                     <!-- /.card-body -->
                                 </div>
@@ -184,17 +239,140 @@
                             <!-- /.tab-pane -->
 
                             <div class="tab-pane" id="parents">
-                                <!-- parents -->
-                                <div class="card card-warning">
-                                    <div class="card-header">
-                                        <h3 class="card-title"><i class="fa fa-users"></i>Student Parents</h3>
+                                <div class="row">
+                                    <div class="col-md-7 col-sm-6">
+                                        <!-- parents -->
+                                        <div class="card card-secondary">
+                                            <div class="card-header">
+                                                <h3 class="card-title"><i class="fa fa-user-plus"></i> Add New Parent</h3>
+                                            </div>
+                                            <div class="card-body">
+                                                <x-form.form action="{{ route('students.parents.store') }}"
+                                                    method="post" buttonName="Add New Parent" buttonIcon="fa-user-plus"
+                                                    buttonClass="btn-secondary">
+                                                    <input type="hidden" name="has_student" value="1">
+                                                    <input type="hidden" name="student_id"
+                                                        value="{{ $user->student_id }}">
+
+                                                    <x-form.input class="col-sm-6" label="Full name" type="text"
+                                                        name="name" placeholder="Full name" value="" />
+
+                                                    <x-form.input class="col-sm-6" label="Address" type="address"
+                                                        name="address" placeholder="Address" value="" />
+
+                                                    <x-form.input class="col-sm-6" label="Mobile no" type="number"
+                                                        name="mobile_no" placeholder="Mobile no" value=""
+                                                        onKeyPress="if(this.value.length==10) return false;"
+                                                        minlength="10" maxlength="10" />
+
+                                                    <x-form.select class="col-sm-6" value="" label="Gender"
+                                                        name="gender">
+                                                        <option value="Male">Male</option>
+                                                        <option value="Female">Female</option>
+                                                    </x-form.select>
+
+                                                    <x-form.select class="col-sm-6" value="" label="Type"
+                                                        name="type">
+                                                        <option value="Mother">Mother</option>
+                                                        <option value="Father">Father</option>
+                                                        <option value="Guardian">Guardian</option>
+                                                        <option value="Sibling">Sibling</option>
+                                                        <option value="Others">Others</option>
+                                                    </x-form.select>
+
+                                                    <x-form.input class="col-sm-6" label="Profession" type="text"
+                                                        name="profession" placeholder="Profession" value="" />
+
+                                                    <div class="col-sm-6">
+                                                        <div class="form-group">
+                                                            <label for="receive_sms">Receive SMS</label>
+                                                            <select name="receive_sms" id="receive_sms"
+                                                                class="form-control">
+                                                                <option value="1">No</option>
+                                                                <option value="0">Yes</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </x-form.form>
+                                            </div>
+                                            <!-- /.card-body -->
+                                        </div>
+                                        <!-- parents -->
                                     </div>
-                                    <div class="card-body">
-                                        Parents
+                                    <div class="col-md-5 col-sm-6">
+                                        <!-- parents -->
+                                        <div class="card card-warning">
+                                            <div class="card-header">
+                                                <h3 class="card-title"><i class="fa fa-user-edit"></i> Add Existing Parent
+                                                </h3>
+                                            </div>
+                                            <div class="card-body">
+                                                <x-form.form action="{{ route('students.parents.add') }}" method="post"
+                                                    buttonName="Add Existing Parent" buttonIcon="fa-user-plus"
+                                                    buttonClass="btn-warning">
+                                                    <input type="hidden" name="student_id"
+                                                        value="{{ $user->student_id }}">
+
+                                                    <x-form.select class="col-md-12" value="" label="Select Parent"
+                                                        name="parent">
+                                                        @foreach ($parents as $parent)
+                                                            <option value="{{ $parent->parent_id }}">{{ $parent->name }}
+                                                                [{{ $parent->mobile_no }}]</option>
+                                                        @endforeach
+                                                    </x-form.select>
+                                                </x-form.form>
+                                            </div>
+                                            <!-- /.card-body -->
+                                        </div>
+                                        <!-- parents -->
                                     </div>
-                                    <!-- /.card-body -->
                                 </div>
-                                <!-- parents -->
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <x-card class="card-info" icon="fa-users" title="Student Parents">
+                                            <x-table.table id="table1">
+                                                <x-table.thead>
+                                                    <th>S.N</th>
+                                                    <th>TYPE</th>
+                                                    <th>NAMES</th>
+                                                    <th>PHONE</th>
+                                                    <th>SMS</th>
+                                                    <th>PROFESSION</th>
+                                                    <th>ADDRESS</th>
+                                                    <th>ACTIONS</th>
+                                                </x-table.thead>
+                                                <tbody>
+                                                    @foreach ($s_parents as $parent)
+                                                        <tr>
+                                                            <td>{{ $loop->iteration }}</td>
+                                                            <td>{{ $parent->type }}</td>
+                                                            <td>{{ $parent->name }}</td>
+                                                            <td>{{ $parent->mobile_no }}</td>
+                                                            <td>{{ $parent->receive_sms ? 'Yes' : 'No' }}</td>
+                                                            <td>{{ $parent->profession }}</td>
+                                                            <td>{{ $parent->address }}</td>
+                                                            <td>
+                                                                <a
+                                                                    href="{{ route('students.parents.edit', $parent->parent_id) }}">
+                                                                    <x-buttons.button class="btn-primary btn-xs"
+                                                                        buttonName="Edit" buttonIcon="fa-edit" />
+                                                                </a>
+                                                                <a
+                                                                    href="{{ route('students.parents.show', $parent->parent_id) }}">
+                                                                    <x-buttons.button class="btn-info btn-xs"
+                                                                        buttonName="Show" buttonIcon="fa-bars" />
+                                                                </a>
+                                                                <x-buttons.delete
+                                                                    action="{{ route('students.parents.destroy', $parent->parent_id) }}"
+                                                                    btnSize="btn-xs" />
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </x-table.table>
+                                        </x-card>
+                                    </div>
+                                </div>
                             </div>
                             <!-- /.tab-pane -->
 

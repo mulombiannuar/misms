@@ -149,7 +149,17 @@
                         class="nav-link {{ $page_name == 'users' ? 'active' : '' }}">
                         <i class="fa fa-users nav-icon"></i>
                         <p>
-                            Users Management
+                            Manage Users
+                        </p>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('students.parents.index') }}"
+                        class="nav-link {{ $page_name == 'parents' ? 'active' : '' }}">
+                        <i class="fa fa-users nav-icon"></i>
+                        <p>
+                            Manage Parents
                         </p>
                     </a>
                 </li>

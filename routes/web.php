@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Hostel\HostelController;
 use App\Http\Controllers\Hostel\RoomController;
+use App\Http\Controllers\Student\ParentController;
 use App\Http\Controllers\Student\StudentController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -136,9 +137,17 @@ Route::middleware(['auth', 'role:admin'])->prefix('students')->name('students.')
    
     //Students
     Route::controller(StudentController::class)->group(function(){
+        Route::post('students/store-subjects/',  'storeStudentSubjects')->name('store-subjects');
         Route::put('students/update-photo/{id}',  'updateStudentPhoto')->name('update-photo');
         Route::put('students/reset-password/{id}',  'resetPassword')->name('reset-password');
         Route::get('get-students',  'getStudents')->name('get.students');
         Route::resource('students', StudentController::class);
+    });
+
+    //Parents
+    Route::controller(ParentController::class)->group(function(){
+        Route::get('get-parents',  'getParents')->name('parents.get-parents');
+        Route::post('parents/add-existing',  'addExistingParent')->name('parents.add');
+        Route::resource('parents', ParentController::class);
     });
 });

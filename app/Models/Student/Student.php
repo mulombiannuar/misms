@@ -2,6 +2,8 @@
 
 namespace App\Models\Student;
 
+use App\Models\Academic\Section;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,27 +15,16 @@ class Student extends Model
     protected $table = 'students';
     protected $primaryKey = 'student_id';
 
-    /**
-     * Get class section belonging to the student.
-     *
-     */
     public function section()
     {
         return $this->hasOne(Section::class, 'section_id', 'section_id');
     }
-    /**
-    * Get county belonging to the student.
-    *
-    */
+   
     public function county()
     {
         return $this->hasOne('counties', 'county_id', 'county_id');
     }
 
-    /**
-    * Get sub county belonging to the student.
-    *
-    */
     public function subcounty()
     {
         return $this->hasOne('sub_counties', 'sub_id', 'sub_county');
@@ -41,7 +32,12 @@ class Student extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id', 'user_id');
+        return $this->belongsTo(User::class, 'student_user_id', 'id');
+    }
+
+    public function parents()
+    {
+        return $this->belongsToMany(Parents::class, 'student_parents', 'student_id', 'parent_id');
     }
 
     public static function getStudents()

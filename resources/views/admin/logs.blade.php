@@ -3,7 +3,7 @@
 @section('content')
     <!-- Main content -->
     <x-section>
-        <x-card class="card-primary" icon="fa-list" title="{{ $title }} ({{ $logs->count() }})">
+        <x-card class="card-secondary" icon="fa-list" title="{{ $title }} ({{ $logs->count() }})">
             <x-table.table id="datatable">
                 <x-table.thead>
                     <th>S.N</th>
