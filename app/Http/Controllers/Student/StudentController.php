@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Academic\Form;
 use App\Models\Academic\Subject;
 use App\Models\Hostel\Hostel;
+use App\Models\Hostel\StudentRoom;
 use App\Models\Student\Parents;
 use App\Models\Student\Student;
 use App\Models\Student\StudentParent;
@@ -178,6 +179,7 @@ class StudentController extends Controller
             'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
             'hostels' => Hostel::orderBy('hostel_name', 'asc')->get(),
             'subjects' => Subject::orderBy('optionality', 'asc')->get(),
+            'student_room' => StudentRoom::getStudentRoom($student->student_id),
             's_parents' => StudentParent::getStudentParents($student->student_id),
             'counties' => DB::table('counties')->orderBy('county_name', 'asc')->get(),
         ];

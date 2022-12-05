@@ -149,4 +149,16 @@ class HostelController extends Controller
 
         return back()->with('success', 'Hostel data and associated rooms deleted successfully');
     }
+
+    public function fetchHostelRooms(Request $request)
+    {
+        $hostel_id =  $request->input('hostel_id');
+        $rooms = Room::where('hostel_id', $hostel_id)->get();
+        $output = '<option value="">- Select Room Below -</option>'; 
+        foreach($rooms as $row)
+        {
+          $output .= '<option value="'.$row['room_id'].'">'.$row['room_label'].'</option>';
+        }
+        return $output; 
+    }
 }

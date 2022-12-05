@@ -17,7 +17,7 @@
                             <li class="nav-item"><a class="nav-link" href="#documents" data-toggle="tab"><i
                                         class="fa fa-list"></i>
                                     Documents</a></li>
-                            <li class="nav-item"><a class="nav-link" href="#hostel" data-toggle="tab"><i
+                            <li class="nav-item"><a class="nav-link" href="#hostel-details" data-toggle="tab"><i
                                         class="fa fa-list-alt"></i>
                                     Hostel Details</a></li>
                         </ul>
@@ -79,7 +79,7 @@
                                                     placeholder="Select date of admission"
                                                     value="{{ date_format(date_create($user->birth_date), 'Y-m-d') }}" />
 
-                                                <x-form.select class="col-md-4 col-sm-12"
+                                                <x-form.select class="col-md-4 col-sm-6"
                                                     value="{{ $user->section_numeric }}" label="Student Class"
                                                     name="section_numeric">
                                                     @foreach ($forms as $form)
@@ -88,7 +88,7 @@
                                                     @endforeach
                                                 </x-form.select>
 
-                                                <x-form.select class="col-md-4 col-sm-12" value="" label="Sections"
+                                                <x-form.select class="col-md-4 col-sm-6" value="" label="Sections"
                                                     name="section">
                                                     <option selected value="{{ $user->section_id }}">
                                                         {{ $user->section_numeric . $user->section_name }}
@@ -391,14 +391,57 @@
                             </div>
                             <!-- /.tab-pane -->
 
-                            <div class="tab-pane" id="hostel">
+                            <div class="tab-pane" id="hostel-details">
                                 <!-- documents -->
                                 <div class="card card-info">
                                     <div class="card-header">
                                         <h3 class="card-title"><i class="fa fa-list-alt"></i> Hostel Details</h3>
                                     </div>
                                     <div class="card-body">
-                                        Hostel Details
+                                        <x-form.form action="{{ route('hostel.rooms.assign') }}" method="post"
+                                            buttonName="Assign Student Room" buttonIcon="fa-user-plus"
+                                            buttonClass="btn-secondary">
+                                            <input type="hidden" name="student_id" value="{{ $user->student_id }}">
+                                            @if ($student_room)
+                                                <div class="col-sm-4">
+                                                    <div class="form-group">
+                                                        <label>Current Hostel</label>
+                                                        <input type="text" class="form-control" readonly
+                                                            value="{{ $student_room->hostel_name }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <div class="form-group">
+                                                        <label>Current Room</label>
+                                                        <input type="text" class="form-control" readonly
+                                                            value="{{ $student_room->room_label }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <div class="form-group">
+                                                        <label>Current Bed Space</label>
+                                                        <input type="text" class="form-control" readonly
+                                                            value="{{ $student_room->space_label }}" required>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                            <x-form.select class="col-sm-4" value="" label="Hostel"
+                                                name="hostel">
+                                                @foreach ($hostels as $hostel)
+                                                    <option value="{{ $hostel->hostel_id }}">
+                                                        {{ $hostel->hostel_name }}
+                                                    </option>
+                                                @endforeach
+                                            </x-form.select>
+
+                                            <x-form.select class="col-sm-4" value="" label="Room"
+                                                name="room">
+                                            </x-form.select>
+
+                                            <x-form.select class="col-sm-4" value="" label="Bed Space"
+                                                name="beds">
+                                            </x-form.select>
+                                        </x-form.form>
                                     </div>
                                     <!-- /.card-body -->
                                 </div>
@@ -469,6 +512,58 @@
                     });
                 } else {
                     $('#section').html('<option value="">Select Form First</option>');
+                }
+            });
+
+            $('#hostel').change(function() {
+                hostel_id = $('#hostel').val();
+                if (hostel_id != '') {
+                    $.ajax({
+                        url: "{{ route('hostel.hostels.get-rooms') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        type: "POST",
+                        data: {
+                            hostel_id: hostel_id
+                        },
+                        success: function(data) {
+                            console.log(data);
+                            $('#room').html(data);
+                        },
+                        error: function(xhr, desc, err) {
+                            console.log(xhr);
+                            //console.log("Details0: " + desc + "\nError:" + err);
+                        },
+                    });
+                } else {
+                    $('#room').html('<option value="">No Rooms Available</option>');
+                }
+            });
+
+            $('#room').change(function() {
+                room_id = $('#room').val();
+                if (room_id != '') {
+                    $.ajax({
+                        url: "{{ route('hostel.rooms.fetch-spaces') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        type: "POST",
+                        data: {
+                            room_id: room_id
+                        },
+                        success: function(data) {
+                            console.log(data);
+                            $('#beds').html(data);
+                        },
+                        error: function(xhr, desc, err) {
+                            console.log(xhr);
+                            //console.log("Details0: " + desc + "\nError:" + err);
+                        },
+                    });
+                } else {
+                    $('#beds').html('<option value="">No Spaces Available</option>');
                 }
             });
         });

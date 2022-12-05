@@ -31,7 +31,7 @@
                         </p>
                     </a>
                 </li>
-                <li class="nav-header">SYSTEM COMPONENTS</li>
+                {{-- <li class="nav-header">SYSTEM COMPONENTS</li> --}}
                 <li class="nav-item">
                     <a href="{{ route('profile') }}" class="nav-link {{ $page_name == 'profile' ? 'active' : '' }}">
                         <i class="fa fa-user nav-icon"></i>

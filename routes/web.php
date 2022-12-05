@@ -120,13 +120,16 @@ Route::middleware(['auth'])->prefix('account')->name('account.')->group(function
 Route::middleware(['auth', 'role:admin'])->prefix('hostel')->name('hostel.')->group(function(){
    
     //Hostels 
+    Route::post('get-rooms', [HostelController::class, 'fetchHostelRooms'])->name('hostels.get-rooms');
     Route::resource('hostels', HostelController::class);
 
     //Rooms and Bed space
     Route::controller(RoomController::class)->group(function(){
+        Route::post('get-spaces', 'fetchRoomsBeds')->name('rooms.fetch-spaces');
         Route::get('get-spaces', 'getBedSpaces')->name('rooms.get-spaces');
         Route::get('bed-spaces', 'bedSpaces')->name('rooms.bed-spaces');
         Route::post('save-space', 'saveBedSpace')->name('rooms.save-space');
+        Route::post('assign-room', 'assignStudentRoom')->name('rooms.assign');
         Route::delete('delete-space/{id}', 'deleteBedSpace')->name('rooms.delete-space');
         Route::resource('rooms', RoomController::class, ['except' => ['edit', 'create']]);
     });

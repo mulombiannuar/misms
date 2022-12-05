@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Hostel;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AssignRoomRequest;
 use App\Http\Requests\StoreRoomRequest;
 use App\Http\Requests\UpdateRoomRequest;
 use App\Models\Hostel\BedSpace;
+use App\Models\Hostel\Hostel;
 use App\Models\Hostel\Room;
 use App\Models\Hostel\StudentRoom;
+use App\Models\Student\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -175,6 +178,43 @@ class RoomController extends Controller
         User::saveUserLog($activity_type, $description);
     
         return back()->with('success', 'Bed space data and associated occupants deleted successfully');
+    }
+
+    public function assignStudentRoom(AssignRoomRequest $request)
+    {
+        $student = Student::find($request->student_id);
+        $hostel = Hostel::find($request->hostel);
+        $room = Room::find($request->room);
+        StudentRoom::where('student_id', $request->student_id)->delete();
+
+        $studentRoom = new StudentRoom();
+        $studentRoom->student_id = $request->student_id;
+        $studentRoom->hostel_id = $request->hostel;
+        $studentRoom->room_id = $request->room;
+        $studentRoom->bed_id = $request->beds;
+        $studentRoom->save();
+
+        //Save audit trail
+        $activity_type = 'Student Room Assigning';
+        $description = 'Successfully assigned student of admission number '.$student->admission_no.' room '.$hostel->hostel_name.'-'.$room->room_label;
+        User::saveUserLog($activity_type, $description);
+
+        return back()->with('success', 'Successfully assigned student of admission number '.$student->admission_no.' room '.$hostel->hostel_name.'-'.$room->room_label);
+    }
+
+    public function fetchRoomsBeds(Request $request)
+    {
+        $room_id =  $request->input('room_id');
+        $beds = BedSpace::where('room_id', $room_id)->get();
+        $occupiedSpaces = StudentRoom::where('room_id', $room_id)->get();
+        $output = '<option value="">- Available Bed Space -</option>'; 
+        foreach($beds as $row)
+        {
+            $occupiedSpaces->pluck('bed_id')->contains($row['bed_id']) 
+            ? $output .= '<option disabled value="'.$row['bed_id'].'">'.$row['space_label'].'</option>'
+            : $output .= '<option value="'.$row['bed_id'].'">'.$row['space_label'].'</option>';
+        }
+        return $output; 
     }
 
 }
