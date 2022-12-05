@@ -52,6 +52,11 @@ class Room extends Model
 
     public static function getStudentsRoomById($id)
     {
-       return [];
+      return StudentRoom::where('student_rooms.room_id', $id)
+                        ->join('students', 'students.student_id', '=', 'student_rooms.student_id')
+                        ->join('bed_spaces', 'bed_spaces.bed_id', '=', 'student_rooms.bed_id')
+                        ->join('users', 'users.id', '=', 'students.student_user_id')
+                        ->orderBy('users.name', 'asc')
+                        ->get();
     }
 }

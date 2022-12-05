@@ -29,11 +29,19 @@
                                         <th>S.N</th>
                                         <th>ADM NO.</th>
                                         <th>STUDENT NAME</th>
+                                        <th>ROOM LABEL</th>
                                         <th>BED SPACE LABEL</th>
-                                        <th>Action</th>
                                     </x-table.thead>
                                     <tbody>
-
+                                        @foreach ($students as $student)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $student->admission_no }}</td>
+                                                <td>{{ $student->name }}</td>
+                                                <td>{{ $room->room_label }}</td>
+                                                <td>{{ $student->space_label }}</td>
+                                            </tr>
+                                        @endforeach
                                     </tbody>
                                 </x-table.table>
                             </div>
@@ -63,7 +71,6 @@
                                         <th>S.N</th>
                                         <th>ROOM LABEL</th>
                                         <th>SPACE LABEL</th>
-                                        <th>OCCUPANTS</th>
                                         <th>Action</th>
                                     </x-table.thead>
                                     <tbody>
@@ -72,7 +79,6 @@
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $bed->room_label }}</td>
                                                 <td>{{ $bed->space_label }}</td>
-                                                <td>{{ $bed->student }}</td>
                                                 <td>
                                                     <x-buttons.delete
                                                         action="{{ route('hostel.rooms.delete-space', $bed->bed_id) }}"
