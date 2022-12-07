@@ -15,9 +15,9 @@
                     <th>ADM. NO</th>
                     <th>NAMES</th>
                     <th>EMAILS</th>
-                    <th>UPI</th>
                     <th>GENDER</th>
                     <th>CLASS</th>
+                    <th>SECTION</th>
                     <th>DOB DATE</th>
                     <th>STS</th>
                     <th>ACTIONS</th>
@@ -53,12 +53,12 @@
                         name: 'email'
                     },
                     {
-                        data: 'upi',
-                        name: 'upi'
-                    },
-                    {
                         data: 'gender',
                         name: 'gender'
+                    },
+                    {
+                        data: 'section_numeric',
+                        name: 'section_numeric'
                     },
                     {
                         data: 'section_name',

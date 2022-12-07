@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Academic\ClassAttendanceController;
+use App\Http\Controllers\Academic\ExamController;
 use App\Http\Controllers\Academic\FormController;
 use App\Http\Controllers\Academic\OverallGradingController;
 use App\Http\Controllers\Academic\SectionController;
@@ -109,7 +111,13 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:
         Route::get('default-gradings', 'defaultGradings')->name('default-gradings.index');
     });
 
-    
+    //ExamController
+    Route::controller(ExamController::class)->group(function(){
+        Route::put('exams/activate/{exam}', 'activateExam')->name('exams.activate');
+        Route::put('exams/deactivate/{exam}', 'deactivateExam')->name('exams.deactivate');
+        Route::resource('exams', ExamController::class);
+    });
+
 });
 
 Route::middleware(['auth'])->prefix('account')->name('account.')->group(function(){
@@ -152,5 +160,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('students')->name('students.')
         Route::get('get-parents',  'getParents')->name('parents.get-parents');
         Route::post('parents/add-existing',  'addExistingParent')->name('parents.add');
         Route::resource('parents', ParentController::class);
+    });
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('attendances')->name('attendances.')->group(function(){
+   
+    //ClassAttendanceController
+    Route::controller(ClassAttendanceController::class)->group(function(){
+        
+        Route::resource('class-attendances', ClassAttendanceController::class);
     });
 });

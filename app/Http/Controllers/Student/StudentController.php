@@ -157,7 +157,22 @@ class StudentController extends Controller
      */
     public function show($id)
     {
-        //
+        $student = Student::getStudentById($id);
+        $user = User::find($id);
+        $pageData = [
+            'user' => $student,
+			'page_name' => 'students',
+            'title' => ucwords($student->name.'-'.$student->admission_no),
+            's_subjects' => $user->subjects,
+            'parents' => Parents::orderBy('name', 'asc')->get(),
+            'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
+            'hostels' => Hostel::orderBy('hostel_name', 'asc')->get(),
+            'subjects' => Subject::orderBy('optionality', 'asc')->get(),
+            'student_room' => StudentRoom::getStudentRoom($student->student_id),
+            's_parents' => StudentParent::getStudentParents($student->student_id),
+            'counties' => DB::table('counties')->orderBy('county_name', 'asc')->get(),
+        ];
+        return view('admin.student.edit', $pageData);
     }
 
     /**

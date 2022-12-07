@@ -79,6 +79,41 @@
                 </li>
 
                 <li class="nav-item has-treeview">
+                    <a href="{{ route('admin.exams.index') }}"
+                        class="nav-link {{ $page_name == 'attendances' ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-calendar"></i>
+                        <p>
+                            Attendance
+                            <i class="fas fa-angle-left right"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('attendances.class-attendances.index') }}" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Classes Attendance</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Exams Attendance</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('admin.exams.index') }}"
+                        class="nav-link {{ $page_name == 'exams' ? 'active' : '' }}">
+                        <i class="fa fa-graduation-cap nav-icon"></i>
+                        <p>
+                            Exams
+                        </p>
+                    </a>
+                </li>
+
+                <li class="nav-item has-treeview">
                     <a href="{{ route('admin.subject-grading.index') }}"
                         class="nav-link {{ $page_name == 'gradings' ? 'active' : '' }}">
                         <i class="nav-icon fas fa-list-alt"></i>
