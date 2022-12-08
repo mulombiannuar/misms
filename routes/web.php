@@ -167,7 +167,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('attendances')->name('attendan
    
     //ClassAttendanceController
     Route::controller(ClassAttendanceController::class)->group(function(){
-        
+        Route::get('class-attendances/student-report/{id}',  'studentClassAttendanceReport')->name('class-attendances.student-report');
+        Route::put('class-attendances/update-attendance/{id}',  'updateStudentClassAttendance')->name('class-attendances.update-attendance');
+        Route::post('class-attendances/save',  'storeStudentsClassAttendance')->name('class-attendances.save');
         Route::resource('class-attendances', ClassAttendanceController::class);
     });
 });

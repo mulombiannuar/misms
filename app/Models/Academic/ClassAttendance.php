@@ -22,9 +22,10 @@ class ClassAttendance extends Model
     public static function getClassAttendances()
     {
          return DB::table('class_attendances')
+                  ->join('sessions', 'sessions.session_id', '=', 'class_attendances.session_id')
                   ->join('sections', 'sections.section_id', '=', 'class_attendances.section_id')
                   ->join('users', 'users.id', '=', 'class_attendances.created_by')
-                  ->select('class_attendances.*', 'sections.*', 'users.name as teacher_name')
+                  ->select('class_attendances.*', 'sessions.*', 'sections.*', 'users.name as teacher_name')
                   ->orderBy('attendance_id', 'desc')
                   ->get();
     }

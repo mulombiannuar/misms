@@ -17,7 +17,8 @@ class CreateStudentAttendancesTable extends Migration
             $table->id('student_attendance_id');
             $table->integer('attendance_id');
             $table->integer('student_id');
-            $table->string('status');
+            $table->string('attendance_status');
+            $table->string('comment');
             $table->integer('action_by');
             $table->timestamps();
         });

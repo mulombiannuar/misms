@@ -7,26 +7,20 @@
             <x-form.form action="{{ route('attendances.class-attendances.store') }}" method="post"
                 buttonName="Save New Attendance" buttonIcon="fa-plus-circle" buttonClass="btn-secondary">
 
-                <x-form.input class="col-md-3 col-sm-6" label="Attendance Date" type="date" name="date"
+                <x-form.input class="col-md-4 col-sm-6" label="Attendance Date" type="date" name="date"
                     placeholder="Select attendancce date" value="{{ date_format(date_create(now()), 'Y-m-d') }}" />
 
-                <x-form.select class="col-md-3 col-sm-6" value="" label="Class" name="section_numeric">
+                <x-form.select class="col-md-4 col-sm-6" value="" label="Class" name="section_numeric">
                     @foreach ($forms as $form)
                         <option value="{{ $form->form_numeric }}">
                             {{ $form->form_name }}</option>
                     @endforeach
                 </x-form.select>
 
-                <x-form.select class="col-md-3 col-sm-6" value="" label="Sections" name="section">
+                <x-form.select class="col-md-4 col-sm-6" value="" label="Sections" name="section">
                     <option value="">
                         Slect class numeric first
                     </option>
-                </x-form.select>
-
-                <x-form.select class="col-md-3 col-sm-12" value="" label="Term" name="term">
-                    <option value="1">Term 1</option>
-                    <option value="2">Term 2</option>
-                    <option value="3">Term 3</option>
                 </x-form.select>
             </x-form.form>
         </x-card>

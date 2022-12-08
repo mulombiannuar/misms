@@ -18,7 +18,7 @@ class CreateClassAttendancesTable extends Migration
             $table->integer('section_id');
             $table->string('date');
             $table->string('year');
-            $table->string('term');
+            $table->string('session_id');
             $table->integer('created_by');
             $table->timestamps();
         });

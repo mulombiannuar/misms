@@ -23,6 +23,7 @@ class StudentAttendance extends Model
                     'sections.*', 
                     'users.name', 
                     'users.email',
+                    'student_attendances.*'
                     )
                   ->where('student_attendances.attendance_id', $attendance_id)
                   ->orderBy('admission_no', 'asc')

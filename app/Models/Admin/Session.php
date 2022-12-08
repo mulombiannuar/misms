@@ -19,4 +19,9 @@ class Session extends Model
     {
         return DB::table('sessions')->orderBy('term','asc')->get();
     }
+
+    public static function getActiveSession()
+    {
+        return DB::table('sessions')->where('status',1)->first();
+    }
 }

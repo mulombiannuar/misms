@@ -4,7 +4,7 @@
     <div class="modal-dialog {{ $modalSize }}">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title">{{ $modalTitle }}</h4>
+                <h4 class="modal-title"><i class="fa fa-list-alt"></i> {{ $modalTitle }}</h4>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>

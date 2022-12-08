@@ -3,15 +3,20 @@
 namespace App\Http\Controllers\Academic;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreClassAttendanceRequest;
+use App\Http\Requests\StoreStudentsClassAttendanceRequest;
 use App\Models\Academic\ClassAttendance;
 use App\Models\Academic\Form;
 use App\Models\Academic\Section;
 use App\Models\Academic\StudentAttendance;
+use App\Models\Admin\Session;
 use App\Models\Student\Student;
 use App\Models\User;
-use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class ClassAttendanceController extends Controller
 {
@@ -51,21 +56,23 @@ class ClassAttendanceController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreClassAttendanceRequest $request)
     {
         //return $request;
-        $section_id = $request->section;
         $date = $request->date;
+        $section_id = $request->section;
+        $session = Session::getActiveSession();
         $attendanceExists = ClassAttendance::getClassAttendanceBySectionAndDate($section_id, $date);
         if ($attendanceExists) {
             return redirect(route('attendances.class-attendances.index'))->with('danger', 'Class attendance you are trying to create already exists');
         }
+        
         $attendance = new ClassAttendance();
         $attendance->section_id = $section_id ; 
         $attendance->date = $date; 
-        $attendance->year = Date('Y'); 
-        $attendance->term = $request->input('term'); 
+        $attendance->year = $session->session; 
         $attendance->created_by = Auth::user()->id; 
+        $attendance->session_id = $session->session_id; 
         $attendance->save();
 
         //Save audit trail
@@ -88,6 +95,7 @@ class ClassAttendanceController extends Controller
         $students = StudentAttendance::getStudentsByAttendanceId($id);
         $pageData = [
 			'students' => $students,
+            'attendance' => $attendance,
             'page_name' => 'attendances',
             'section' => Section::find($attendance->section_id),
             'sstudents' => Student::getStudentsBySectionId($attendance->section_id),
@@ -105,7 +113,7 @@ class ClassAttendanceController extends Controller
     public function destroy($id)
     {
         ClassAttendance::where('attendance_id', $id)->delete();
-       // StudentAttendance::where('attandace_id', $id)->delete();
+        StudentAttendance::where('attendance_id', $id)->delete();
 
         //Save audit trail
         $activity_type = 'Class Attendance Deletion';
@@ -113,5 +121,65 @@ class ClassAttendanceController extends Controller
         User::saveUserLog($activity_type, $description);
 
         return back()->with('success', 'Class attendance data deleted successfully');
+    }
+
+    //Save students class attendances records to database
+    public function storeStudentsClassAttendance(StoreStudentsClassAttendanceRequest $request)
+    {
+        //return $request;
+        // Delete exisiting records first
+        DB::table('student_attendances')->where('attendance_id', $request->attendance_id)->delete();
+        $classAttendance = ClassAttendance::getClassAttendanceById($request->attendance_id);
+        $students = $request->students;
+        $comments = $request->comments;
+        $status = $request->status;
+
+        for ($s=0; $s <count($students) ; $s++) 
+        { 
+            $comment = is_null($comments[$s]) ? 'Student was present' : $comments[$s];
+            DB::table('student_attendances')->insert([
+                'comment' => $comment, 
+                'student_id' => $students[$s], 
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+                'action_by' => Auth::User()->id,
+                'attendance_status' => $status[$s], 
+                'attendance_id' => $classAttendance->attendance_id, 
+            ]);
+        }
+     
+        //Save audit trail
+        $activity_type = 'Student Attendances Creation';
+        $description = 'Succesfully marked student attendance dated '.$classAttendance->date.' for class '.$classAttendance->section_numeric.$classAttendance->section_name;
+        User::saveUserLog($activity_type, $description);
+        
+        return back()->with('success', 'Succesfully marked student attendance dated '.$classAttendance->date.' for class '.$classAttendance->section_numeric.$classAttendance->section_name);
+    }
+
+    //Update Student attendance
+    public function updateStudentClassAttendance(Request $request, $id)
+    {
+        $request->validate([
+            'attendance_status' => 'required|integer',
+            'comment' => 'string|required'
+        ]);
+        //return $request;
+        $attendance = StudentAttendance::find($id);
+        $attendance->comment = $request->comment;
+        $attendance->attendance_status = $request->attendance_status;
+        $attendance->save();
+
+        //Save audit trail
+        $activity_type = 'Student Attendances Updation';
+        $description = 'Succesfully updated student attendance of id '.$id;
+        User::saveUserLog($activity_type, $description);
+
+        return back()->with('success', 'Student attendance data updated successfully');
+    }
+
+    //View student attendance report
+    public function studentClassAttendanceReport($student_id)
+    {
+         return $student_id;
     }
 }
