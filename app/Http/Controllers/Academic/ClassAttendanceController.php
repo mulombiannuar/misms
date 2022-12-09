@@ -80,7 +80,7 @@ class ClassAttendanceController extends Controller
         $description = 'Created new class attendance dated  '.$attendance->date;
         User::saveUserLog($activity_type, $description);
 
-        return redirect(route('attendances.class-attendances.index'))->with('success', 'Class attendance created successfully');
+        return redirect(route('attendances.class-attendances.show',  $attendance->attendance_id))->with('success', 'Class attendance created successfully');
     }
 
     /**

@@ -9,6 +9,7 @@ use App\Http\Controllers\Academic\SubjectController;
 use App\Http\Controllers\Academic\SubjectGradingController;
 use App\Http\Controllers\Academic\SubjectTeacherController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\PDFController;
 use App\Http\Controllers\Admin\PeriodController;
 use App\Http\Controllers\Admin\SessionController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -171,5 +172,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('attendances')->name('attendan
         Route::put('class-attendances/update-attendance/{id}',  'updateStudentClassAttendance')->name('class-attendances.update-attendance');
         Route::post('class-attendances/save',  'storeStudentsClassAttendance')->name('class-attendances.save');
         Route::resource('class-attendances', ClassAttendanceController::class);
+    });
+});
+
+Route::middleware(['auth'])->prefix('reports')->name('reports.')->group(function(){
+   
+    //PDFController
+    Route::controller(PDFController::class)->prefix('pdfs')->group(function(){
+        Route::get('students',  'studentsClassAttendanceReport')->name('pdfs.students');
+       
     });
 });
