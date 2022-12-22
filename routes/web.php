@@ -193,12 +193,12 @@ Route::middleware(['auth'])->prefix('marks')->name('marks.')->group(function(){
     Route::controller(SubmittedScoresController::class)->group(function(){
          Route::get('get-scores', 'getSubmittedScores')->name('submitted-scores.getscores');
          Route::resource('submitted-scores', SubmittedScoresController::class)->except(['edit', 'update']);
-       
     });
 
      Route::controller(ScoreController::class)->group(function(){
          Route::post('scores/save', 'saveStudentScore')->name('scores.save');
+         Route::get('scores/analysis', 'analysis')->name('scores.analysis');
+         Route::get('scores/analysed', 'analysedScores')->name('scores.analysed');
          Route::resource('scores', ScoreController::class)->except(['index', 'show']);
-       
     });
 });

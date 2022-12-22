@@ -2,6 +2,7 @@
 
 namespace App\Models\Academic;
 
+use App\Models\Student\Student;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -53,5 +54,26 @@ class Score extends Model
                   ->select('students.admission_no', 'scores.*', 'users.name')
                   ->first();
     }
+
+   //Get section single exam results
+   public function fetchSectionsStudentsSingleExamResults($exam_id, $section_numeric)
+   {
+      $sections = Section::getSectionsByClassNumeric($section_numeric);
+      for ($s=0; $s <count($sections) ; $s++) { 
+          $sections[$s]->students = $this->getStudentsScoresBySectionId($sections[$s]->section_id, $exam_id);
+         //$sections[$s]->gradesData = $this->getGradeDistribution($sections[$s]->students);
+         //$sections[$s]->subjects = $this->getSubjectsAnalysis($sections[$s]->students, $form_numeric);
+      }
+      return $sections;
+   }
+
+   private function getStudentsScoresBySectionId($section_id, $exam_id)
+   {
+       $students = Student::getStudentsBySectionId($section_id);
+       for ($s=0; $s <count($students) ; $s++) { 
+        # code...
+       }
+       return $students;
+   }
 
 }

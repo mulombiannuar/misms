@@ -7,7 +7,9 @@ use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\StoreStudentScoreRequest;
 use App\Http\Requests\StoreStudentsScoresRequest;
 use App\Models\Academic\Exam;
+use App\Models\Academic\Form;
 use App\Models\Academic\Score;
+use App\Models\Academic\Section;
 use App\Models\User;
 use App\Utilities\Utilities;
 use Carbon\Carbon;
@@ -198,6 +200,40 @@ class ScoreController extends Controller
             return back()->with('warning', 'You cannot make modification to this exam since it has been locked');
        }
        return true;
+    }
+
+    public function analysis()
+    {
+        $pageData = [
+			'page_name' => 'exams',
+            'title' => 'Students Scores Analysis',
+            'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
+        ];
+        return view('admin.academic.marks.analysis', $pageData);
+    }
+
+    public function analysedScores(Request $request)
+    {
+        $request->validate([
+            'section_numeric' => 'required|integer',
+            'section' => 'required|integer',
+            'exams' => 'required|integer',
+        ]);
+
+        $section_numeric = $request->section_numeric;
+        $section_id = $request->section;
+        $exam_id = $request->exams;
+
+        $exam = Exam::find($exam_id);
+        $score = new Score();
+
+        $pageData = [
+            'exam' => $exam,
+			'page_name' => 'exams',
+            'title' => ucwords($exam->name),
+            'sections' =>  $score->fetchSectionsStudentsSingleExamResults($exam_id, $section_numeric),
+        ];
+        return view('admin.academic.marks.analysed_scores', $pageData);
     }
 
 }

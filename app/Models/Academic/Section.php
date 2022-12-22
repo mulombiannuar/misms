@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class Section extends Model
 {
@@ -25,6 +26,11 @@ class Section extends Model
     public function teacher()
     {
         return $this->hasOne(User::class, 'id', 'section_teacher');
+    }
+
+    public static function getSectionsByClassNumeric($section_numeric)
+    {
+        return DB::table('sections')->where('section_numeric', $section_numeric)->orderBy('section_name', 'asc')->get();
     }
 
 
