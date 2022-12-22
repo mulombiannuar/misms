@@ -48,20 +48,23 @@
                 <form role="form" action="{{ route('reports.pdfs.students') }}">
                     @csrf
                     <div class="row">
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label for="start_date">Start Date</label>
-                                <input type="date" name="start_date" class="form-control" id="start_date"
-                                    value="{{ date_format(date_create(now()), 'Y-m-d') }}" required>
-                            </div>
-                        </div>
-                        <div class="col-sm-6">
-                            <div class="form-group">
-                                <label for="end_date">End Date</label>
-                                <input type="date" name="end_date" class="form-control" id="end_date"
-                                    value="{{ date_format(date_create(now()), 'Y-m-d') }}" required>
-                            </div>
-                        </div>
+                        <x-form.select class="col-md-6 col-sm-12" value="" label="Student Class"
+                            name="section_numeric">
+                            @foreach ($forms as $form)
+                                <option value="{{ $form->form_numeric }}">
+                                    {{ $form->form_name }}</option>
+                            @endforeach
+                        </x-form.select>
+
+                        <x-form.select class="col-md-6 col-sm-12" value="" label="Sections" name="section">
+                            <option value="">- Select Section -</option>
+                        </x-form.select>
+
+                        <x-form.input class="col-md-6 col-sm-6" label="Start Date" type="date" name="start_date"
+                            placeholder="Select date start date" value="{{ date_format(date_create(now()), 'Y-m-d') }}" />
+
+                        <x-form.input class="col-md-6 col-sm-6" label="End Date" type="date" name="end_date"
+                            placeholder="Selext end date" value="{{ date_format(date_create(now()), 'Y-m-d') }}" />
                     </div>
                     <!-- /.card-body -->
                     <div class="modal-footer justify-content-between">
@@ -76,3 +79,35 @@
     </x-section>
     <!-- /.section component -->
 @endsection
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            $('#section_numeric').change(function() {
+                section_numeric = $('#section_numeric').val();
+                if (section_numeric != '') {
+                    $.ajax({
+                        url: "{{ route('get.formsections') }}",
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        type: "POST",
+                        data: {
+                            section_numeric: section_numeric
+                        },
+                        success: function(data) {
+                            console.log(data);
+                            $('#section').html(data);
+                        },
+                        error: function(xhr, desc, err) {
+                            console.log(xhr);
+                            //console.log("Details0: " + desc + "\nError:" + err);
+                        },
+                    });
+                } else {
+                    $('#section').html('<option value="">Select Form First</option>');
+                }
+            });
+
+        });
+    </script>
+@endpush

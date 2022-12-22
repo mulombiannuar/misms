@@ -15,8 +15,8 @@
                     <th>NAMES</th>
                     <th>CLASS</th>
                     <th>TERM</th>
-                    <th>YEAR</th>
-                    <th>CONVERTED</th>
+                    <th>START DATE</th>
+                    <th>DEADLINE</th>
                     <th>CONVERSION</th>
                     <th>ACTIONS</th>
                 </x-table.thead>
@@ -27,8 +27,8 @@
                             <td><strong>{{ $exam->name }}</strong></td>
                             <td>{{ $exam->form_name }}</td>
                             <td>TERM {{ $exam->term }}</td>
-                            <td>{{ $exam->year }}</td>
-                            <td>{{ $exam->converted = '1' ? 'Yes' : 'No' }}</td>
+                            <td>{{ $exam->start_date }}</td>
+                            <td><strong>{{ $exam->deadline_date }}</strong></td>
                             <td>{{ $exam->conversion * 100 }}%</td>
                             <td>
                                 <a href="{{ route('admin.exams.edit', $exam->exam_id) }}">

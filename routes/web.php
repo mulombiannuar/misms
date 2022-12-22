@@ -4,10 +4,12 @@ use App\Http\Controllers\Academic\ClassAttendanceController;
 use App\Http\Controllers\Academic\ExamController;
 use App\Http\Controllers\Academic\FormController;
 use App\Http\Controllers\Academic\OverallGradingController;
+use App\Http\Controllers\Academic\ScoreController;
 use App\Http\Controllers\Academic\SectionController;
 use App\Http\Controllers\Academic\SubjectController;
 use App\Http\Controllers\Academic\SubjectGradingController;
 use App\Http\Controllers\Academic\SubjectTeacherController;
+use App\Http\Controllers\Academic\SubmittedScoresController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\PDFController;
 use App\Http\Controllers\Admin\PeriodController;
@@ -50,9 +52,10 @@ Route::controller(UserController::class)->middleware('auth')->group(function (){
     Route::get('profile', 'profile')->name('profile');
     Route::post('get-teacher-sections',  'fetchTeacherSections')->name('get.teachersections');
     Route::post('get-form-sections',  'fetchFormSections')->name('get.formsections');
+    Route::post('get-form-exams',  'fetchFormExams')->name('get.formexams');
 });
 
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function(){
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function(){
 
     //Periods
     Route::resource('periods', PeriodController::class, ['except' => ['show']]);
@@ -180,6 +183,22 @@ Route::middleware(['auth'])->prefix('reports')->name('reports.')->group(function
     //PDFController
     Route::controller(PDFController::class)->prefix('pdfs')->group(function(){
         Route::get('students',  'studentsClassAttendanceReport')->name('pdfs.students');
+       
+    });
+});
+
+Route::middleware(['auth'])->prefix('marks')->name('marks.')->group(function(){
+   
+    //SubmittedScoreController
+    Route::controller(SubmittedScoresController::class)->group(function(){
+         Route::get('get-scores', 'getSubmittedScores')->name('submitted-scores.getscores');
+         Route::resource('submitted-scores', SubmittedScoresController::class)->except(['edit', 'update']);
+       
+    });
+
+     Route::controller(ScoreController::class)->group(function(){
+         Route::post('scores/save', 'saveStudentScore')->name('scores.save');
+         Route::resource('scores', ScoreController::class)->except(['index', 'show']);
        
     });
 });

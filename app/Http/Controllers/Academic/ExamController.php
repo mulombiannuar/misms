@@ -60,6 +60,9 @@ class ExamController extends Controller
         $exam->notes = $request->input('notes'); 
         $exam->converted = $request->input('converted'); 
         $exam->conversion = $request->input('conversion'); 
+        $exam->end_date = $request->input('end_date'); 
+        $exam->start_date = $request->input('start_date'); 
+        $exam->deadline_date = $request->input('deadline_date'); 
         $exam->class_numeric = $request->input('class_numeric'); 
         $exam->save();
 
@@ -121,6 +124,9 @@ class ExamController extends Controller
         $exam->term = $request->input('term'); 
         $exam->notes = $request->input('notes'); 
         $exam->converted = $request->input('converted'); 
+        $exam->end_date = $request->input('end_date'); 
+        $exam->start_date = $request->input('start_date'); 
+        $exam->deadline_date = $request->input('deadline_date'); 
         $exam->conversion = $request->input('conversion'); 
         $exam->class_numeric = $request->input('class_numeric'); 
         $exam->save();

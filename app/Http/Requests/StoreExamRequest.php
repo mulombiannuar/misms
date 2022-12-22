@@ -30,6 +30,9 @@ class StoreExamRequest extends FormRequest
             'class_numeric' => 'required|integer',
             'converted' => 'required|string',
             'conversion' => 'required|string',
+            'deadline_date' => 'required|date|after_or_equal:start_date',
+            'start_date' => 'required|date|before_or_equal:end_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
         ];
     }
 }

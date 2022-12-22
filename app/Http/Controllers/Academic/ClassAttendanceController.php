@@ -30,6 +30,7 @@ class ClassAttendanceController extends Controller
         $pageData = [
 			'page_name' => 'attendances',
             'title' => 'Class Attendances',
+            'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
             'attendances' => ClassAttendance::getClassAttendances(),
         ];
         return view('admin.academic.attendances.index', $pageData);

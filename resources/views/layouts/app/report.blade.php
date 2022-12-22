@@ -218,8 +218,14 @@
             padding-left: 15px;
             padding-right: 15px;
 
+        }
 
-
+        #rotate {
+            -moz-transform: rotate(-90.0deg);
+            -o-transform: rotate(-90.0deg);
+            -webkit-transform: rotate(-90.0deg);
+            filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083);
+            -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)";
         }
     </style>
 </head>

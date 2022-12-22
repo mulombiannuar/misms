@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Fortify\CreateNewUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreUserRequest;
+use App\Models\Academic\Exam;
 use App\Models\Academic\Form;
 use App\Models\Academic\Section;
 use App\Models\Academic\Subject;
@@ -339,6 +340,7 @@ class UserController extends Controller
         return $output; 
     }
 
+    
     public function fetchTeacherSections(Request $request)
     {
         $form_numeric =  $request->input('form_numeric');
@@ -353,6 +355,25 @@ class UserController extends Controller
         foreach($sections as $row)
         {
           $output .= '<option value="'.$row['section_id'].'">'.$row['section_numeric'].$row['section_name'].'</option>';
+        }
+        return $output; 
+    }
+    
+     //Fetch form exams
+    public function fetchFormExams(Request $request)
+    {
+        $status =  $request->input('status');
+        $class =  $request->input('section_numeric');
+        
+        if(Auth::user()->hasRole('admin')){
+             $subs = Exam::where(['class_numeric' => $class])->get();
+        }else{
+           $subs = Exam::where(['class_numeric' => $class, 'status' => 1])->get();
+        }
+        $output = '<option value="">- Select Exam -</option>'; 
+        foreach($subs as $row)
+        {
+          $output .= '<option value="'.$row->exam_id.'">'.$row->name.'</option>';
         }
         return $output; 
     }

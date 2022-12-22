@@ -79,7 +79,7 @@
                 </li>
 
                 <li class="nav-item has-treeview">
-                    <a href="{{ route('admin.exams.index') }}"
+                    <a href="{{ route('attendances.class-attendances.index') }}"
                         class="nav-link {{ $page_name == 'attendances' ? 'active' : '' }}">
                         <i class="nav-icon fas fa-calendar"></i>
                         <p>
@@ -103,14 +103,29 @@
                     </ul>
                 </li>
 
-                <li class="nav-item">
+                <li class="nav-item has-treeview">
                     <a href="{{ route('admin.exams.index') }}"
                         class="nav-link {{ $page_name == 'exams' ? 'active' : '' }}">
-                        <i class="fa fa-graduation-cap nav-icon"></i>
+                        <i class="nav-icon fas fa-graduation-cap"></i>
                         <p>
-                            Exams
+                            Exams Management
+                            <i class="fas fa-angle-left right"></i>
                         </p>
                     </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.exams.index') }}" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Exams</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('marks.submitted-scores.index') }}" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Marks Entry</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
                 <li class="nav-item has-treeview">

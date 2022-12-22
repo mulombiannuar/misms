@@ -100,7 +100,7 @@ class SubjectController extends Controller
     public function update(UpdateSubjectRequest $request, $id)
     {
         $subject = Subject::find($id);
-        $subject->group = $request->input('subject_name'); 
+        $subject->group = $request->input('group'); 
         $subject->subject_name = $request->input('subject_name'); 
         $subject->subject_code = $request->input('subject_code'); 
         $subject->subject_short = $request->input('subject_short'); 

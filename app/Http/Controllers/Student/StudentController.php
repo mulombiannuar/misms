@@ -162,7 +162,7 @@ class StudentController extends Controller
         $pageData = [
             'user' => $student,
 			'page_name' => 'students',
-            'title' => ucwords($student->name.'-'.$student->admission_no),
+            'title' => ucwords($student->name.' - '.$student->admission_no),
             's_subjects' => $user->subjects,
             'parents' => Parents::orderBy('name', 'asc')->get(),
             'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),

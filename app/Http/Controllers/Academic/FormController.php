@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateFormRequest;
 use App\Models\Academic\Form;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FormController extends Controller
 {
@@ -136,4 +137,6 @@ class FormController extends Controller
 
         return back()->with('success', 'Class data deleted successfully');
     }
+
+   
 }
