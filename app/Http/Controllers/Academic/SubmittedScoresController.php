@@ -68,6 +68,12 @@ class SubmittedScoresController extends Controller
         $class_numeric = $request->section_numeric;
         $session = Session::getActiveSession();
         $subject = Subject::find($subject_id);
+        
+        // Get subject students
+        $subject_students = StudentSubject::getSubjectStudentsBySectionId($section_id, $subject_id);
+        if (count($subject_students) == 0) 
+        return back()->with('warning', 'Subject you are trying to define scores record does not have students registered to it');
+
         $scoreExists = SubmittedScore::where([
             'exam_id' => $exam_id, 
             'subject_id' => $subject_id, 

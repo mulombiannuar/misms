@@ -16,6 +16,7 @@
                     <th>SUBJECTS</th>
                     <th>CLASS</th>
                     <th>SECTION</th>
+                    <th>COUNT</th>
                     <th>ACTION BY</th>
                     <th>SHOW</th>
                     <th>DELETE</th>
@@ -141,6 +142,10 @@
                     {
                         data: 'section_name',
                         name: 'section_name'
+                    },
+                    {
+                        data: 'count',
+                        name: 'count'
                     },
                     {
                         data: 'name',

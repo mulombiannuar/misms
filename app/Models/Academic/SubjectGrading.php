@@ -26,6 +26,22 @@ class SubjectGrading extends Model
         return $grades;
     }
 
+    public function getSubjectGrading($score, $subject_id, $form_numeric)
+    {
+        $grade = $this::where(['subject_id' => $subject_id,'form_numeric' => $form_numeric])
+                      ->where('min_score', '<=', $score)
+                      ->where('max_score', '>=', $score)
+                      ->first();
+
+        if(empty($grade)){
+            $grade = [
+                'grade_name' => $this->getScoreGrading($score),
+                'score_remarks' => $this->getScoreRemarks($score),
+            ];
+        }
+        return $grade;
+    }
+
     ////Get default grading
     public function getScoreGrading($score)
     {

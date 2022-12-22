@@ -32,6 +32,7 @@
                                             <th>NAMES</th>
                                             <th>CLASS</th>
                                             <th>SCORES</th>
+                                            <th>GRD</th>
                                             <th>ACTIONS</th>
                                         </x-table.thead>
                                         <tbody>
@@ -43,6 +44,7 @@
                                                     <td>{{ $section->section_numeric . $section->section_name }}
                                                     </td>
                                                     <td><strong>{{ $student->score }}</strong></td>
+                                                    <td><strong>{{ $student->grade['grade_name'] }}</strong></td>
                                                     <td>
                                                         <a href="{{ route('marks.scores.edit', $student->score_id) }}">
                                                             <x-buttons.button class="btn btn-xs btn-info" buttonName="Edit"

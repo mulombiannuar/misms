@@ -28,13 +28,20 @@ class Score extends Model
 
     public static function getStudentsScoresByExamRecord($record_id)
     {
-        return  DB::table('scores')
-                  ->where('exam_record_id', $record_id)
-                  ->join('students', 'students.student_id', '=', 'scores.student_id' )
-                  ->join('users', 'users.id', '=', 'students.student_user_id' )
-                  ->select('students.admission_no', 'scores.*', 'users.name')
-                  ->orderBy('admission_no', 'asc')
-                  ->get();
+        $subjectGrading = new SubjectGrading();
+        $scores = DB::table('scores')
+                    ->where('exam_record_id', $record_id)
+                    ->join('students', 'students.student_id', '=', 'scores.student_id' )
+                    ->join('users', 'users.id', '=', 'students.student_user_id' )
+                    ->select('students.admission_no', 'scores.*', 'users.name')
+                    ->orderBy('admission_no', 'asc')
+                    ->get();
+
+        for ($score=0; $score <count($scores) ; $score++) 
+        { 
+            $scores[$score]->grade = $subjectGrading->getSubjectGrading($scores[$score]->score, $scores[$score]->subject_id, $scores[$score]->class_numeric);
+        }
+        return $scores;
     }
 
     public static function getScoresById($id)

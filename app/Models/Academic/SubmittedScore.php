@@ -34,6 +34,9 @@ class SubmittedScore extends Model
     public static function getSubmittedScores()
     {
          $scores = SubmittedScore::submittedScores();
+         for ($s=0; $s <count($scores) ; $s++) { 
+             $scores[$s]->count = DB::table('scores')->where('exam_record_id', $scores[$s]->subm_id)->count();
+         }
          return $scores;
     }
 
