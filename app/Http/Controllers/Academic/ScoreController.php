@@ -10,10 +10,12 @@ use App\Models\Academic\Exam;
 use App\Models\Academic\Form;
 use App\Models\Academic\Score;
 use App\Models\Academic\Section;
+use App\Models\Admin\DefaultGrade;
 use App\Models\User;
 use App\Utilities\Utilities;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -216,24 +218,37 @@ class ScoreController extends Controller
     {
         $request->validate([
             'section_numeric' => 'required|integer',
-            'section' => 'required|integer',
             'exams' => 'required|integer',
         ]);
 
         $section_numeric = $request->section_numeric;
-        $section_id = $request->section;
         $exam_id = $request->exams;
 
-        $exam = Exam::find($exam_id);
         $score = new Score();
+        $exam = Exam::find($exam_id);
+        $defaultGrades = new DefaultGrade();
+
+        //return $score->fetchClassStudentsSingleExamResults($exam_id, $section_numeric);
+        //return $score->fetchSectionsStudentsSingleExamResults($exam_id, $section_numeric);
 
         $pageData = [
             'exam' => $exam,
 			'page_name' => 'exams',
             'title' => ucwords($exam->name),
+            'subjects' => $score->getSchoolSubjects(),
+            'grades' => $defaultGrades->getDefaultGrades(),
+            'form' =>  Form::where('form_numeric', $exam->class_numeric)->first(),
             'sections' =>  $score->fetchSectionsStudentsSingleExamResults($exam_id, $section_numeric),
+            'classData' => $score->fetchClassStudentsSingleExamResults($exam_id, $section_numeric),
         ];
-        return view('admin.academic.marks.analysed_scores', $pageData);
+        //return view('admin.academic.marks.analysed_scores', $pageData);
+
+        //generate pdf
+        $html = view('reports.pdfs.class_students_performance', $pageData);
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadHTML($html);
+        $pdf->setPaper('A4','landscape');
+        return $pdf->stream(strtoupper($exam->name).'-Class-Students-Performance.pdf', array('Attachment' => 0));
     }
 
 }

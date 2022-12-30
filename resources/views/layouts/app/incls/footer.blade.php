@@ -1,5 +1,5 @@
 <footer class="main-footer">
-    <strong>Copyright &copy; 2018 - <?= date('Y') ?>. <a href="https://mulan.co.ke">&nbsp; Mulan
+    <strong>Copyright &copy; 2018 - <?= date('Y') ?>. <a href="https://mulan.co.ke">&nbsp;Mulan
             Technologies</a>.</strong>
     All rights reserved.
     <div class="float-right d-none d-sm-inline-block">

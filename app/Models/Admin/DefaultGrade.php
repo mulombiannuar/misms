@@ -13,13 +13,13 @@ class DefaultGrade extends Model
 
     public function getDefaultGrades()
     {
-        if($this->get()){
-            return $this->get();
-        }
+        // if($this->get()){
+        //     return $this->get();
+        // }
         return $this->defaultGrades();;
     }
 
-    private function defaultGrades()
+    public function defaultGrades()
     {
         return [
             [

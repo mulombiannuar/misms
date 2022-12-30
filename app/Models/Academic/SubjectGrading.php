@@ -28,10 +28,11 @@ class SubjectGrading extends Model
 
     public function getSubjectGrading($score, $subject_id, $form_numeric)
     {
-        $grade = $this::where(['subject_id' => $subject_id,'form_numeric' => $form_numeric])
-                      ->where('min_score', '<=', $score)
-                      ->where('max_score', '>=', $score)
-                      ->first();
+         $grade = $this::select('grade_name', 'score_remarks')
+                       ->where(['subject_id' => $subject_id,'form_numeric' => $form_numeric])
+                       ->where('min_score', '<=', $score)
+                       ->where('max_score', '>=', $score)
+                       ->first();
 
         if(empty($grade)){
             $grade = [
@@ -41,6 +42,8 @@ class SubjectGrading extends Model
         }
         return $grade;
     }
+
+    
 
     ////Get default grading
     public function getScoreGrading($score)
@@ -212,55 +215,55 @@ class SubjectGrading extends Model
     // get student mean grade by points
     public function getStudentMeanGrade($tpoints)
     {
-    $grade = "-";
-    if($tpoints >= 1)
-    {
-        $grade = "E";
-    }
-    if($tpoints >= 2)
-    {
-        $grade = "D-";
-    }
-    if($tpoints >= 3)
-    {
-        $grade = "D";
-    }
-    if($tpoints >= 4)
-    {
-        $grade = "D+";
-    }
-    if($tpoints >= 5)
-    {
-        $grade = "C-";
-    }
-    if($tpoints >= 6)
-    {
-        $grade = "C";
-    }
-    if($tpoints >= 7)
-    {
-        $grade = "C+";
-    }
-    if($tpoints >= 8)
-    {
-        $grade = "B-";
-    }
-    if($tpoints >= 9)
-    {
-        $grade = "B";
-    }
-    if($tpoints >= 10)
-    {
-        $grade = "B+";
-    }
-    if($tpoints >= 11)
-    {
-        $grade = "A-";
-    }
-    if($tpoints >= 12)
-    {
-        $grade = "A";
-    }
-    return $grade;
+        $grade = "-";
+        if($tpoints >= 1)
+        {
+            $grade = "E";
+        }
+        if($tpoints >= 2)
+        {
+            $grade = "D-";
+        }
+        if($tpoints >= 3)
+        {
+            $grade = "D";
+        }
+        if($tpoints >= 4)
+        {
+            $grade = "D+";
+        }
+        if($tpoints >= 5)
+        {
+            $grade = "C-";
+        }
+        if($tpoints >= 6)
+        {
+            $grade = "C";
+        }
+        if($tpoints >= 7)
+        {
+            $grade = "C+";
+        }
+        if($tpoints >= 8)
+        {
+            $grade = "B-";
+        }
+        if($tpoints >= 9)
+        {
+            $grade = "B";
+        }
+        if($tpoints >= 10)
+        {
+            $grade = "B+";
+        }
+        if($tpoints >= 11)
+        {
+            $grade = "A-";
+        }
+        if($tpoints >= 12)
+        {
+            $grade = "A";
+        }
+        return $grade;
     }
 }

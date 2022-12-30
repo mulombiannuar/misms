@@ -16,7 +16,7 @@ class StudentSubject extends Model
     {
         return $this->select('subjects.*')
                     ->where('student_id', $student_id)
-                    ->join('subjects', 'student_subjects.subject_id', '=', 'subjects.subject_id')
+                    ->join('subjects', 'subjects.subject_id', '=', 'student_subjects.subject_id')
                     ->get();
     }
 

@@ -11,8 +11,8 @@
                             Exam Details</a></li>
                     <li class="nav-item"><a class="nav-link" href="#students" data-toggle="tab"><i class="fa fa-users"></i>
                             Students</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#attendance" data-toggle="tab"><i class="fa fa-list"></i>
-                            Attendance</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#reports" data-toggle="tab"><i class="fa fa-list"></i>
+                            Report Cards</a></li>
                 </ul>
             </div><!-- /.card-header -->
             <div class="card-body">
@@ -98,14 +98,14 @@
                     </div>
                     <!-- /.tab-pane -->
 
-                    <div class="tab-pane" id="attendance">
+                    <div class="tab-pane" id="reports">
                         <!-- documents -->
                         <div class="card card-warning">
                             <div class="card-header">
-                                <h3 class="card-title"><i class="fa fa-list"></i> Attendance</h3>
+                                <h3 class="card-title"><i class="fa fa-list"></i> Report Cards</h3>
                             </div>
                             <div class="card-body">
-                                Attendance
+                                Report Cards
                             </div>
                             <!-- /.card-body -->
                         </div>

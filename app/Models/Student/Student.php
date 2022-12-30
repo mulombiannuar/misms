@@ -94,5 +94,24 @@ class Student extends Model
                   ->get();
     }
 
+    public static function getStudentsByClassNumeric($class_numeric)
+    {
+        return  DB::table('students')
+                  ->where([
+                    'section_numeric' => $class_numeric,
+                    'users.deleted_at' => null, 
+                   ])
+                  ->join('users', 'users.id', '=', 'students.student_user_id' )
+                  ->join('sections', 'sections.section_id', '=', 'students.section_id')
+                  ->select(
+                    'students.*', 
+                    'sections.*', 
+                    'users.name', 
+                    'users.email',
+                    )
+                  ->orderBy('admission_no', 'asc')
+                  ->get();
+    }
+
 
 }
