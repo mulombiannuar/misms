@@ -131,6 +131,12 @@
                                 <p>Marks Analysis</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('marks.scores.analysis') }}" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Reports</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 

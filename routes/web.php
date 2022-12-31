@@ -119,6 +119,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::controller(ExamController::class)->group(function(){
         Route::put('exams/activate/{exam}', 'activateExam')->name('exams.activate');
         Route::put('exams/deactivate/{exam}', 'deactivateExam')->name('exams.deactivate');
+        // Route::put('exams/open/{exam}', 'openExam')->name('exams.open');
+        // Route::put('exams/close/{exam}', 'closeExam')->name('exams.close');
         Route::resource('exams', ExamController::class);
     });
 

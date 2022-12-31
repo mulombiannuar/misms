@@ -5,6 +5,7 @@ namespace App\Models\Academic;
 use App\Models\Admin\DefaultGrade;
 use App\Models\Student\Student;
 use App\Models\Student\StudentSubject;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +70,10 @@ class Score extends Model
       $students = Student::getStudentsByClassNumeric($section_numeric)->toArray();
       $this->getStudentsScores($students, $exam_id);
       usort($students, array($this, 'sortStudentsByPoints'));
+
+      //Save students overall class position
+      $this->saveStudentsOverallPosition($students, $exam_id);
+
       return [
          'students' => $students,
          'gradesData' => $this->getGradeDistribution($students),
@@ -85,6 +90,9 @@ class Score extends Model
           $sections[$s]->students = $this->getStudentsScores($students, $exam_id);
           $sections[$s]->gradesData = $this->getGradeDistribution($sections[$s]->students);
           $sections[$s]->subjects = $this->getSubjectsAnalysis($sections[$s]->students, $section_numeric);
+
+          //Save students analysed exam
+          $this->saveAnalysedStudentExam($sections[$s]->students, $exam_id, $sections[$s]->section_id);
       }
       return $sections;
    }
@@ -123,6 +131,7 @@ class Score extends Model
    private function getStudentSubjectsScores($student_id, $exam_id)
    {
       $exam = Exam::find($exam_id);
+      $student = Student::find($student_id);
       $schoolSubjects = $this->getSchoolSubjects();
       $subjectScores = $this->fetchStudentSubjectScores($student_id, $exam_id);
       
@@ -136,18 +145,69 @@ class Score extends Model
          
          for ($score=0; $score <count($subjectScores) ; $score++) 
          { 
-            $studentsSubjectScores = $this->fetchStudentsSubjectScores($subjectScores[$score]->subject_id, $exam_id);
+            $studentsClassSubjectScores = $this->fetchStudentsSubjectScores($subjectScores[$score]->subject_id, $exam_id, null);
+            $studentsSectionSubjectScores = $this->fetchStudentsSubjectScores($subjectScores[$score]->subject_id, $exam_id, $student->section_id);
             if ($schoolSubjects[$sub]->subject_id == $subjectScores[$score]->subject_id) 
             {
                 $schoolSubjects[$sub]->subjectScore = $subjectScores[$score]->score; 
-                //$schoolSubjects[$sub]->subjectEntry  = count($studentsSubjectScores);
                 $schoolSubjects[$sub]->subjectGrade = $subjectGrading->getSubjectGrading($subjectScores[$score]->score, $subjectScores[$score]->subject_id, $exam->class_numeric)['grade_name'];
                 $schoolSubjects[$sub]->subjectPoints  = $subjectGrading->getSubjectPoints($schoolSubjects[$sub]->subjectGrade);
-                $schoolSubjects[$sub]->subjectPosition  = $this->getStudentSubjectPosition($studentsSubjectScores, $subjectScores[$score]->score_id, count($studentsSubjectScores));
+                $schoolSubjects[$sub]->classPosition  = $this->getStudentSubjectPosition($studentsClassSubjectScores, $subjectScores[$score]->score_id, count($studentsClassSubjectScores));
+                $schoolSubjects[$sub]->sectionPosition  = $this->getStudentSubjectPosition($studentsSectionSubjectScores, $subjectScores[$score]->score_id, count($studentsSectionSubjectScores));
+                
+                //Save analysed subject score
+                $this->saveAnalysedSubjectScore($exam_id, $subjectScores[$score]->score_id, $schoolSubjects[$sub]);
             }
          }
       }
       return $schoolSubjects;
+   }
+
+   //save analysed subject score
+   private function saveAnalysedSubjectScore($exam_id, $score_id, $subject)
+   {
+       DB::table('students_analysed_scores')->where('score_id', $score_id)->delete();
+       return DB::table('students_analysed_scores')->insert([
+         'exam_id' =>  $exam_id,
+         'score_id' =>  $score_id,
+         'subject_grade' =>  $subject->subjectGrade,
+         'section_position' => $subject->sectionPosition,
+         'class_position' => $subject->classPosition,
+         'created_at' => Carbon::now(),
+         'updated_at' => Carbon::now(),
+       ]);
+   }
+
+   //save analysed student exam
+   private function saveAnalysedStudentExam($students, $exam_id, $section_id)
+   {
+      DB::table('students_analysed_exams')->where(['exam_id' => $exam_id, 'section_id' => $section_id])->delete();
+      for ($s=0; $s <count($students) ; $s++) { 
+         DB::table('students_analysed_exams')->insert([
+                  'exam_id' =>  $exam_id,
+                  'section_id' =>  $section_id,
+                  'student_id' =>  $students[$s]->student_id,
+                  'subjects_entry' =>  $students[$s]->subjectsEntry,
+                  'total_points' => $students[$s]->points->totalPoints,
+                  'average_points' => $students[$s]->points->averagePoints,
+                  'average_grade' => $students[$s]->points->averageGrade,
+                  'section_position' => $students[$s]->classPosition,
+                  'created_at' => Carbon::now(),
+                  'updated_at' => Carbon::now(),
+               ]);
+      }
+      return true;
+   }
+
+   //save student overall position
+   private function saveStudentsOverallPosition($students, $exam_id)
+   {
+      for ($s=0; $s <count($students) ; $s++) { 
+         DB::table('students_analysed_exams')
+            ->where(['student_id' => $students[$s]->student_id, 'exam_id' => $exam_id])
+            ->update(['class_position' => $students[$s]->classPosition]);
+      }
+      return true;
    }
 
    // fetch from the database specific student subject scores in a given exam
@@ -157,9 +217,18 @@ class Score extends Model
    }
 
    // fetch from the database students subject scores in a given exam
-   private function fetchStudentsSubjectScores($subject_id, $exam_id)
+   private function fetchStudentsSubjectScores($subject_id, $exam_id, $section_id)
    {
-      return DB::table('scores')->select('score_id', 'score')->where(['subject_id' => $subject_id, 'exam_id' => $exam_id])->get();
+      if (is_null($section_id)) {
+          return DB::table('scores')
+                   ->select('score_id', 'score')
+                   ->where(['subject_id' => $subject_id, 'exam_id' => $exam_id])
+                   ->get();
+      }
+      return DB::table('scores')
+               ->select('score_id', 'score')
+               ->where(['subject_id' => $subject_id,'section_id' => $section_id, 'exam_id' => $exam_id])
+               ->get();
    }
 
    //get student subjects entry

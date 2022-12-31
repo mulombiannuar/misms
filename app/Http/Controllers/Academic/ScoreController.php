@@ -71,7 +71,8 @@ class ScoreController extends Controller
         $description = 'Successfully created student subject scores';
         User::saveUserLog($activity_type, $description);
 
-        return redirect(route('marks.submitted-scores.show', $exam_record_id))->with('success', 'Subject scores succesfully saved for the selected class and subject');    
+        //return redirect(route('marks.submitted-scores.show', $exam_record_id))->with('success', 'Subject scores succesfully saved for the selected class and subject');    
+        return redirect(route('marks.submitted-scores.index'))->with('success', 'Subject scores succesfully saved for the selected class and subject');    
 
     }
 

@@ -54,6 +54,7 @@ class ExamController extends Controller
     {
         $exam = new Exam;
         $exam->year = Date('Y');
+        $exam->status = 1;
         $exam->created_by = Auth::User()->id;
         $exam->name = $request->input('name'); 
         $exam->term = $request->input('term'); 
@@ -162,6 +163,32 @@ class ExamController extends Controller
         $description = 'Deactivated exam  '.$exam->name;
         User::saveUserLog($activity_type, $description);
         return back()->with('success', 'Exam deactivated successfully');  
+    }
+
+    public function openExam(Request $request, Exam $exam)
+    {
+        $exam->is_closed = 0;
+        $exam->save();
+
+        //Save audit trail
+        $activity_type = 'Exam Opening';
+        $description = 'Opened exam '.$exam->name;
+        User::saveUserLog($activity_type, $description);
+
+        return back()->with('success', 'Exam opened successfully');  
+    }
+
+    public function closeExam(Request $request, Exam $exam)
+    {
+        $exam->is_closed = 1;
+        $exam->save();
+
+        //Save audit trail
+        $activity_type = 'Exam Closure';
+        $description = 'Closed exam '.$exam->name;
+        User::saveUserLog($activity_type, $description);
+
+        return back()->with('success', 'Exam closed successfully');  
     }
 
     /**
