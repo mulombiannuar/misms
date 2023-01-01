@@ -30,7 +30,7 @@ class Section extends Model
 
     public static function getSectionsByClassNumeric($section_numeric)
     {
-        return DB::table('sections')->where('section_numeric', $section_numeric)->orderBy('section_name', 'asc')->get();
+        return DB::table('sections')->select('section_id', 'section_name', 'section_numeric')->where('section_numeric', $section_numeric)->orderBy('section_name', 'asc')->get();
     }
 
 

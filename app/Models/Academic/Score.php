@@ -81,6 +81,21 @@ class Score extends Model
       ];
    }
 
+   //get class analysed students single exam results
+   public function fetchClassAnalysedExamResults($exam_id, $section_numeric)
+   {
+      $students = Student::getStudentsByClassNumeric($section_numeric)->toArray();
+      $this->getStudentsAnalysedScores($students, $exam_id);
+      usort($students, array($this, 'sortStudentsByPoints'));
+
+      return [
+         'students' => $students,
+        // 'gradesData' => $this->getGradeDistribution($students),
+         //'subjects' => $this->getSubjectsAnalysis($students, $section_numeric)
+      ];
+   }
+
+
    //Get section single exam results
    public function fetchSectionsStudentsSingleExamResults($exam_id, $section_numeric)
    {
@@ -93,6 +108,19 @@ class Score extends Model
 
           //Save students analysed exam
           $this->saveAnalysedStudentExam($sections[$s]->students, $exam_id, $sections[$s]->section_id);
+      }
+      return $sections;
+   }
+
+   //Get section analysed single exam results
+   public function fetchSectionsAnalysedExamResults($exam_id, $section_numeric)
+   {
+      $sections = Section::getSectionsByClassNumeric($section_numeric);
+      for ($s=0; $s <count($sections) ; $s++) {
+          $students = Student::getStudentsBySectionId($sections[$s]->section_id)->toArray();
+          $sections[$s]->students = $this->getStudentsAnalysedScores($students, $exam_id);
+          //$sections[$s]->gradesData = $this->getGradeDistribution($sections[$s]->students);
+          //$sections[$s]->subjects = $this->getSubjectsAnalysis($sections[$s]->students, $section_numeric);
       }
       return $sections;
    }
@@ -127,6 +155,20 @@ class Score extends Model
        return $students;
    }
 
+   // get students analysed exam scores
+   private function getStudentsAnalysedScores($students, $exam_id)
+   {
+      for ($s=0; $s <count($students) ; $s++) 
+      { 
+         $students[$s]->subjectScores = $this->getStudentAnalysedSubjectsScores($students[$s]->student_id, $exam_id);
+         $students[$s]->examDetails = $this->fetchStudentAnalysedExamDetails($students[$s]->student_id, $exam_id);
+         $students[$s]->averagePoints = $students[$s]->examDetails->average_points;
+         $students[$s]->studentDev = $this->calculateStudentDeviation($students[$s]->examDetails, $students[$s]->student_id);
+      }
+      usort($students, array($this, 'sortStudentsByPoints'));
+      return $students;
+   }
+
    // get specific student subject scores in a given exam
    private function getStudentSubjectsScores($student_id, $exam_id)
    {
@@ -157,6 +199,33 @@ class Score extends Model
                 
                 //Save analysed subject score
                 $this->saveAnalysedSubjectScore($exam_id, $subjectScores[$score]->score_id, $schoolSubjects[$sub]);
+            }
+         }
+      }
+      return $schoolSubjects;
+   }
+
+   // get student anaylysed subject scores in school subjects
+   private function getStudentAnalysedSubjectsScores($student_id, $exam_id)
+   {
+      $schoolSubjects = $this->getSchoolSubjects();
+      $subjectScores = $this->fetchStudentAnalysedSubjectScores($student_id, $exam_id);
+
+      for ($sub=0; $sub <count($schoolSubjects) ; $sub++) 
+      { 
+         $schoolSubjects[$sub]->subjectScore = '--';
+         $schoolSubjects[$sub]->subjectGrade = '';
+         $schoolSubjects[$sub]->subjectSectionPosition = '';
+         $schoolSubjects[$sub]->subjectClassPosition = '';
+
+         for ($score=0; $score <count($subjectScores) ; $score++) 
+         { 
+            if ($schoolSubjects[$sub]->subject_id == $subjectScores[$score]->subject_id) 
+            {
+               $schoolSubjects[$sub]->subjectScore = $subjectScores[$score]->score;
+               $schoolSubjects[$sub]->subjectGrade = $subjectScores[$score]->subject_grade;
+               $schoolSubjects[$sub]->subjectSectionPosition = $subjectScores[$score]->section_position;
+               $schoolSubjects[$sub]->subjectClassPosition = $subjectScores[$score]->class_position;
             }
          }
       }
@@ -216,6 +285,24 @@ class Score extends Model
       return DB::table('scores')->where(['student_id' => $student_id, 'exam_id' => $exam_id])->get();
    }
 
+   // fetch from the database specific student analysed subject scores in a given exam
+   private function fetchStudentAnalysedSubjectScores($student_id, $exam_id)
+   {
+      return DB::table('students_analysed_scores')
+               ->join('scores' , 'scores.score_id', '=', 'students_analysed_scores.score_id')
+               ->select(
+                  'students_analysed_scores.*',
+                  'exam_record_id',
+                  'class_numeric',
+                  'student_id',
+                  'section_id',
+                  'subject_id',
+                  'score'
+               )
+               ->where(['student_id' => $student_id, 'scores.exam_id' => $exam_id])
+               ->get();
+   }
+
    // fetch from the database students subject scores in a given exam
    private function fetchStudentsSubjectScores($subject_id, $exam_id, $section_id)
    {
@@ -229,6 +316,34 @@ class Score extends Model
                ->select('score_id', 'score')
                ->where(['subject_id' => $subject_id,'section_id' => $section_id, 'exam_id' => $exam_id])
                ->get();
+   }
+
+   //fet student analysed exam details
+   private function fetchStudentAnalysedExamDetails($student_id, $exam_id)
+   {
+      return DB::table('students_analysed_exams')
+               ->select('id', 'subjects_entry', 'total_points', 'average_points', 'average_grade', 'section_position', 'class_position')
+               ->where(['student_id' => $student_id, 'exam_id' => $exam_id])
+               ->first();
+   }
+
+   //calculate student deviation
+   private function calculateStudentDeviation($examDetails, $student_id)
+   {
+      $dev = 0;
+      $currentPoints = $examDetails->average_points;
+      $previousPoints = $this->getStudentPreviousExamPoints($examDetails->id, $student_id);
+      $dev = $currentPoints - $previousPoints;
+      return $dev;
+   }
+
+   //private function get student previous exam point
+   private function getStudentPreviousExamPoints($current_id, $student_id)
+   {
+      $points = 0;
+      $exams = DB::table('students_analysed_exams')->where('student_id', $student_id)->whereNotIn('id', [$current_id])->orderBy('id', 'DESC')->get();
+      if (count($exams) !== 0) $points = $exams[0]->average_points;
+      return $points;
    }
 
    //get student subjects entry
@@ -497,8 +612,6 @@ class Score extends Model
                   }
                }
             }
-
-            
 
            if ($subjects[$s]->subjectEntry > 0)
            {

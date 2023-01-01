@@ -242,14 +242,115 @@ class ScoreController extends Controller
             'sections' =>  $score->fetchSectionsStudentsSingleExamResults($exam_id, $section_numeric),
             'classData' => $score->fetchClassStudentsSingleExamResults($exam_id, $section_numeric),
         ];
-        //return view('admin.academic.marks.analysed_scores', $pageData);
+        return view('admin.academic.marks.analysed_scores', $pageData);
+    }
 
-        //generate pdf
-        $html = view('reports.pdfs.class_students_performance', $pageData);
+    public function reports()
+    {
+        $pageData = [
+			'page_name' => 'exams',
+            'title' => 'Exam Reports',
+            'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
+        ];
+        return view('admin.academic.marks.reports', $pageData);
+    }
+
+    public function reportType(Request $request)
+    {
+        $request->validate([
+            'section_numeric' => 'required|integer',
+            'report_type' => 'required|integer',
+            'exams' => 'required|integer',
+        ]);
+
+        $section_numeric = $request->section_numeric;
+        $report_type = $request->report_type;
+        $exam_id = $request->exams;
+
+        $scores = DB::table('students_analysed_scores')->where('exam_id', $exam_id)->get();
+        if(count($scores) == 0) 
+        return back()->with('warning', 'You cannot view intended reports since no analysed scores have been found for the selected exam');
+        
+        $score = new Score();
+        $exam = Exam::find($exam_id);
+        $defaultGrades = new DefaultGrade();
+        $report = $this->getReportType($report_type);
+        
+        //return $score->fetchSectionsAnalysedExamResults($exam_id, $section_numeric);
+        //return $score->fetchClassAnalysedExamResults($exam_id, $section_numeric);
+
+        $pageData = [
+            'exam' => $exam,
+			'page_name' => 'exams',
+            'title' => ucwords($report['report']),
+            'subjects' => $score->getSchoolSubjects(),
+            'grades' => $defaultGrades->getDefaultGrades(),
+            'sections' => Section::getSectionsByClassNumeric($section_numeric),
+            'form' =>  Form::where('form_numeric', $exam->class_numeric)->first(),
+            'sections' =>  $score->fetchSectionsAnalysedExamResults($exam_id, $section_numeric),
+            'classData' => $score->fetchClassAnalysedExamResults($exam_id, $section_numeric),
+        ];
+        
+        $html = view('reports.pdfs.'.$report['view'], $pageData);
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadHTML($html);
         $pdf->setPaper('A4','landscape');
-        return $pdf->stream(strtoupper($exam->name).'-Class-Students-Performance.pdf', array('Attachment' => 0));
+        return $pdf->stream(ucwords($exam->exam_id.'-'.$exam->name).' '.$report['report'].'.pdf', array('Attachment' => 0));
+    }
+
+    private function getReportType($type)
+    {
+        switch ($type) 
+        {
+            case 1:
+                $report = 'Class Broadsheet';
+                $view = 'class_broadsheet_report';
+                break;
+
+            case 2:
+                $report = 'Grades Distribution';
+                $view = 'grades_distribution_report';
+                break;
+
+            case 3:
+                $report = 'Subjects Analysis';
+                $view = 'subjects_analysis_report';
+                break;
+
+            case 4:
+                $report = 'Streams Ranking';
+                $view = 'streams_ranking_report';
+                break;
+
+            case 5:
+                $report = 'Students Improvement';
+                $view = 'students_improvement_report';
+                break;
+
+            case 6:
+                $report = 'Subjects Improvement';
+                $view = 'subjects_improvement_report';
+                break;
+
+            case 7:
+                $report = 'Students Attendance';
+                $view = 'students_attendances_report';
+                break;
+
+            case 8:
+                $report = 'Students Report Cards';
+                $view = 'students_report_cards';
+                break;
+            
+            default:
+                $report = 'Class Broadsheet';
+                $view = 'class_broadsheet_report';
+                break;
+        }
+        return [
+            'report' => $report,
+            'view' => $view
+        ];
     }
 
 }

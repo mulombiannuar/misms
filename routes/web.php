@@ -197,7 +197,10 @@ Route::middleware(['auth'])->prefix('marks')->name('marks.')->group(function(){
          Route::resource('submitted-scores', SubmittedScoresController::class)->except(['edit', 'update']);
     });
 
-     Route::controller(ScoreController::class)->group(function(){
+    Route::controller(ScoreController::class)->middleware(['role:admin'])->group(function(){
+         Route::get('reports', 'reports')->name('reports.index');
+         Route::get('reports/type', 'reportType')->name('reports.type');
+
          Route::post('scores/save', 'saveStudentScore')->name('scores.save');
          Route::get('scores/analysis', 'analysis')->name('scores.analysis');
          Route::get('scores/analysed', 'analysedScores')->name('scores.analysed');
