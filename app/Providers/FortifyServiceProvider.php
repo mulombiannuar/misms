@@ -59,8 +59,8 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         Fortify::registerView(function(){
-             //return redirect(route('login'))->with('danger', 'You must be logged in to continue');
-             return view('auth.register', ['title' => 'Register']);
+             return redirect(route('login'))->with('danger', 'You must be logged in to continue');
+             //return view('auth.register', ['title' => 'Register']);
         });
 
         Fortify::verifyEmailView(function(){

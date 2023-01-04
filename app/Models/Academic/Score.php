@@ -71,13 +71,22 @@ class Score extends Model
       $this->getStudentsScores($students, $exam_id);
       usort($students, array($this, 'sortStudentsByPoints'));
 
+      $gradesData = $this->getGradeDistribution($students);
+      $subjects =  $this->getSubjectsAnalysis($students, $section_numeric);
+
       //Save students overall class position
       $this->saveStudentsOverallPosition($students, $exam_id);
 
+      //Save analysed grades data
+      $this->saveAnalysedGradesDistribution($gradesData, $exam_id, null);
+
+      //Save analysed subjects
+      $this->saveSubjectsAnalysis($subjects, $exam_id, null);
+
       return [
          'students' => $students,
-         'gradesData' => $this->getGradeDistribution($students),
-         'subjects' => $this->getSubjectsAnalysis($students, $section_numeric)
+         'gradesData' => $gradesData,
+         'subjects' => $subjects
       ];
    }
 
@@ -90,8 +99,8 @@ class Score extends Model
 
       return [
          'students' => $students,
-        // 'gradesData' => $this->getGradeDistribution($students),
-         //'subjects' => $this->getSubjectsAnalysis($students, $section_numeric)
+         'gradesData' => $this->getAnalysedGradesDistribution(null, $exam_id),
+         'subjects' => $this->getAnalysedClassSubjects(null, $exam_id)
       ];
    }
 
@@ -108,6 +117,12 @@ class Score extends Model
 
           //Save students analysed exam
           $this->saveAnalysedStudentExam($sections[$s]->students, $exam_id, $sections[$s]->section_id);
+
+          //Save analysed grades data
+          $this->saveAnalysedGradesDistribution($sections[$s]->gradesData, $exam_id, $sections[$s]->section_id);
+
+          //Save analysed grades data
+          $this->saveSubjectsAnalysis($sections[$s]->subjects, $exam_id, $sections[$s]->section_id);
       }
       return $sections;
    }
@@ -119,8 +134,8 @@ class Score extends Model
       for ($s=0; $s <count($sections) ; $s++) {
           $students = Student::getStudentsBySectionId($sections[$s]->section_id)->toArray();
           $sections[$s]->students = $this->getStudentsAnalysedScores($students, $exam_id);
-          //$sections[$s]->gradesData = $this->getGradeDistribution($sections[$s]->students);
-          //$sections[$s]->subjects = $this->getSubjectsAnalysis($sections[$s]->students, $section_numeric);
+          $sections[$s]->gradesData = $this->getAnalysedGradesDistribution($sections[$s]->section_id, $exam_id);
+          $sections[$s]->subjects = $this->getAnalysedClassSubjects($sections[$s]->section_id, $exam_id);
       }
       return $sections;
    }
@@ -266,6 +281,62 @@ class Score extends Model
                ]);
       }
       return true;
+   }
+
+   //save analysed grades distribution
+   private function saveAnalysedGradesDistribution($gradesData, $exam_id, $section_id)
+   {
+      DB::table('grades_distribution')->where(['exam_id' => $exam_id, 'section_id' => $section_id])->delete();
+      
+      return GradesDistribution::create([
+         'exam_id' => $exam_id,
+         'section_id' => $section_id,
+         'total_points' =>  $gradesData['totalPoints' ],
+         'average_grade' =>  $gradesData['averageGrade' ],
+         'total_students' => $gradesData['totalStudents' ],
+         'average_points' =>  $gradesData['averagePoints' ],
+         'grades' => $this->getCleanGradesDistribution($gradesData['grades']),
+      ]);
+   }
+
+   
+   //save analysed grades distribution
+   private function saveSubjectsAnalysis($subjects, $exam_id, $section_id)
+   {
+      DB::table('subjects_analysis')->where(['exam_id' => $exam_id, 'section_id' => $section_id])->delete();
+      
+      for ($sub=0; $sub <count($subjects) ; $sub++) { 
+       SubjectAnalysis::create([
+         'exam_id' => $exam_id,
+         'section_id' => $section_id,
+         'subject_id' => $subjects[$sub]->subject_id,
+         'total_points' =>  $subjects[$sub]->subjectTotalPoints,
+         'average_grade' =>  $subjects[$sub]->subjectGrade,
+         'total_students' => $subjects[$sub]->subjectEntry,
+         'class_position' => $subjects[$sub]->subjectPosition,
+         'average_points' => $subjects[$sub]->subjectPoints,
+         'total_marks' => $subjects[$sub]->subjectTotalMarks,
+         'average_marks' => $subjects[$sub]->subjectMeanMarks,
+         'grades' => $this->getCleanGradesDistribution($subjects[$sub]->grades),
+      ]);
+      }
+
+      return true;
+   }
+
+   //get clean grades distributions
+   private function getCleanGradesDistribution($gradesData)
+   {
+      $grades = DB::table('default_grades')->select('grade_name')->get()->toArray();
+      for ($g=0; $g <count($grades) ; $g++) { 
+         for ($i=0; $i <count($gradesData) ; $i++) 
+         { 
+           if ($grades[$g]->grade_name == $gradesData[$i]['grade_name']) {
+              $grades[$g]->totalGrades = $gradesData[$i]['totalGrades'];
+           }
+         }
+      }
+      return $grades;
    }
 
    //save student overall position
@@ -521,7 +592,6 @@ class Score extends Model
          }
       }
    }
-
    
    //. Get grades distribution 
    private function getGradeDistribution($students)
@@ -572,6 +642,37 @@ class Score extends Model
          'averageGrade' => $averageGrade
       ];
       return $gradesData;
+   }
+
+   // get analysed grades distribution
+   private function getAnalysedGradesDistribution($section_id, $exam_id)
+   {
+      return DB::table('grades_distribution')->where(['exam_id' => $exam_id, 'section_id' => $section_id])->first();
+   }
+
+   // get class analysed grades distribution
+   private function getAnalysedClassSubjects($section_id, $exam_id)
+   {
+      $subjects = DB::table('subjects_analysis')
+                    ->select('subjects_analysis.*', 'subjects.subject_name')
+                    ->where(['exam_id' => $exam_id, 'section_id' => $section_id])
+                    ->join('subjects', 'subjects.subject_id', '=', 'subjects_analysis.subject_id')
+                    ->get();
+      for ($s=0; $s <count($subjects) ; $s++) { 
+         $subjects[$s]->classPosition = $this->getAnalysedSubjectPosition($subjects[$s]->subject_id, $exam_id, null)->class_position;
+         $subjects[$s]->sectionPosition = $this->getAnalysedSubjectPosition($subjects[$s]->subject_id, $exam_id, $section_id)->class_position;
+      }
+      return $subjects;
+   }
+
+   //get subject analysed positions
+   private function getAnalysedSubjectPosition($subject_id, $exam_id, $section_id)
+   {
+      return DB::table('subjects_analysis')->select('class_position')->where([
+         'exam_id' => $exam_id, 
+         'subject_id' => $subject_id, 
+         'section_id' => $section_id]
+         )->first();
    }
 
    //. Get class exam subjects anaylisis

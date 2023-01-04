@@ -6,9 +6,37 @@
             <h6>SECTION PERFORMANCE / {{ strtoupper($section->section_numeric . $section->section_name) }} /
                 {{ $exam->name }} /
                 {{ $exam->year }}</h6>
-            <div>
-                Section {{ $title }}
-            </div>
+            <h6>Grades Distribution</h6>
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr style="background-color: gray">
+                        <th>ENTRY</th>
+                        @foreach (json_decode($section->gradesData->grades) as $grade)
+                            <th>{{ $grade->grade_name }}</th>
+                        @endforeach
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Z</th>
+                        <th>MN</th>
+                        <th>GD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ $section->gradesData->total_students }}</td>
+                        @foreach (json_decode($section->gradesData->grades) as $grade)
+                            <td>{{ $grade->totalGrades }}</td>
+                        @endforeach
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td><strong>{{ $section->gradesData->average_points }}</strong>
+                        </td>
+                        <td><strong>{{ $section->gradesData->average_grade }}</strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </main>
     @endforeach
     <main>
@@ -16,7 +44,37 @@
             {{ $exam->name }} /
             {{ $exam->year }}</h6>
         <div>
-            Class {{ $title }}
+            <h6>Grades Distribution</h6>
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr style="background-color: gray">
+                        <th>ENTRY</th>
+                        @foreach (json_decode($classData['gradesData']->grades) as $grade)
+                            <th>{{ $grade->grade_name }}</th>
+                        @endforeach
+                        <th>X</th>
+                        <th>Y</th>
+                        <th>Z</th>
+                        <th>MN</th>
+                        <th>GD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ $classData['gradesData']->total_students }}</td>
+                        @foreach (json_decode($classData['gradesData']->grades) as $grade)
+                            <td>{{ $grade->totalGrades }}</td>
+                        @endforeach
+                        <td>0</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td><strong>{{ $classData['gradesData']->average_points }}</strong>
+                        </td>
+                        <td><strong>{{ $classData['gradesData']->average_grade }}</strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </main>
 @endsection
