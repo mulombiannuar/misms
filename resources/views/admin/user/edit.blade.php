@@ -30,6 +30,10 @@
                                         <x-form.input class="col-md-4 col-sm-6" label="Full name*" type="text"
                                             name="name" placeholder="Full name" value="{{ $user->name }}" />
 
+                                        <x-form.input class="col-md-4 col-sm-6" label="Name initials" type="text"
+                                            name="name_initial" placeholder="Name initials"
+                                            value="{{ $user->name_initial }}" />
+
                                         <x-form.input class="col-md-4 col-sm-6" label="National ID*" type="number"
                                             name="national_id" placeholder="National ID" value="{{ $user->national_id }}" />
 
@@ -231,13 +235,9 @@
                 }
             });
 
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
             $('#form_numeric').change(function() {
-                form_numeric = $('#form_numeric').val();
-                if (form_numeric != '') {
+                section_numeric = $('#form_numeric').val();
+                if (section_numeric != '') {
                     $.ajax({
                         url: "{{ route('get.formsections') }}",
                         headers: {
@@ -245,7 +245,7 @@
                         },
                         type: "POST",
                         data: {
-                            form_numeric: form_numeric
+                            section_numeric: section_numeric
                         },
                         success: function(data) {
                             console.log(data);
@@ -257,7 +257,7 @@
                         },
                     });
                 } else {
-                    $('#section').html('<option value="">Select Class Section</option>');
+                    $('#section').html('<option value="">Select Form First</option>');
                 }
             });
         });

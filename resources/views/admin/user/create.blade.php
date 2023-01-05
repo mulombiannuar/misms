@@ -16,6 +16,9 @@
                 <x-form.input class="col-md-4 col-sm-6" label="Full name*" type="text" name="name"
                     placeholder="Full name" value="" />
 
+                <x-form.input class="col-md-4 col-sm-6" label="Name initials" type="text" name="name_initial"
+                    placeholder="Name initials" value="" />
+
                 <x-form.input class="col-md-4 col-sm-6" label="National ID*" type="number" name="national_id"
                     placeholder="National ID" value="" />
 

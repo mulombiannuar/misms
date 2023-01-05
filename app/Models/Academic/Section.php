@@ -33,5 +33,14 @@ class Section extends Model
         return DB::table('sections')->select('section_id', 'section_name', 'section_numeric')->where('section_numeric', $section_numeric)->orderBy('section_name', 'asc')->get();
     }
 
+    public static function getSectionTeacher($section_id)
+    {
+        return DB::table('sections')
+                 ->join('users', 'users.id', '=', 'sections.section_teacher')
+                 ->join('profiles', 'profiles.user_id', '=', 'users.id')
+                 ->where('section_id', $section_id)
+                 ->first(); 
+    }
+
 
 }

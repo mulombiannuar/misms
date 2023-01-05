@@ -119,6 +119,7 @@ class UserController extends Controller
        $profile->mobile_no = $request->input('mobile_no');
        $profile->sub_county = $request->input('sub_county');
        $profile->birth_date = $request->input('birth_date');
+       $profile->name_initial = $request->input('name_initial');
        $profile->save();
 
        //Save audit trail
@@ -193,6 +194,7 @@ class UserController extends Controller
         $profile->mobile_no = $request->input('mobile_no');
         $profile->sub_county = $request->input('sub_county');
         $profile->birth_date = $request->input('birth_date');
+        $profile->name_initial = $request->input('name_initial');
         $profile->save();
 
        //Save audit trail

@@ -14,6 +14,7 @@ class GradesDistribution extends Model
     protected $fillable = [
         'exam_id', 
         'section_id', 
+        'students_entry',
         'total_students', 
         'total_points', 
         'average_points', 

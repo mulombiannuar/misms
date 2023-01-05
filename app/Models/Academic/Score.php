@@ -68,7 +68,7 @@ class Score extends Model
    public function fetchClassStudentsSingleExamResults($exam_id, $section_numeric)
    {
       $students = Student::getStudentsByClassNumeric($section_numeric)->toArray();
-      $this->getStudentsScores($students, $exam_id);
+      $studentScores = $this->getStudentsScores($students, $exam_id);
       usort($students, array($this, 'sortStudentsByPoints'));
 
       $gradesData = $this->getGradeDistribution($students);
@@ -78,7 +78,7 @@ class Score extends Model
       $this->saveStudentsOverallPosition($students, $exam_id);
 
       //Save analysed grades data
-      $this->saveAnalysedGradesDistribution($gradesData, $exam_id, null);
+      $this->saveAnalysedGradesDistribution($gradesData, $exam_id, null, count($studentScores));
 
       //Save analysed subjects
       $this->saveSubjectsAnalysis($subjects, $exam_id, null);
@@ -122,7 +122,7 @@ class Score extends Model
           $this->saveAnalysedStudentExam($sections[$s]->students, $exam_id, $sections[$s]->section_id);
 
           //Save analysed grades data
-          $this->saveAnalysedGradesDistribution($sections[$s]->gradesData, $exam_id, $sections[$s]->section_id);
+          $this->saveAnalysedGradesDistribution($sections[$s]->gradesData, $exam_id, $sections[$s]->section_id, count($sections[$s]->students));
 
           //Save analysed grades data
           $this->saveSubjectsAnalysis($sections[$s]->subjects, $exam_id, $sections[$s]->section_id);
@@ -183,6 +183,8 @@ class Score extends Model
          $students[$s]->examDetails = $this->fetchStudentAnalysedExamDetails($students[$s]->student_id, $exam_id);
          $students[$s]->averagePoints = $students[$s]->examDetails->average_points;
          $students[$s]->studentDev = $this->calculateStudentDeviation($students[$s]->examDetails, $students[$s]->student_id);
+         $students[$s]->classTeacher = $this->getClassTeacher($students[$s]->examDetails);
+         $students[$s]->classEntries = $this->getClassEntries($exam_id, $students[$s]->section_id);
       }
 
       if ($report_type == 1) {
@@ -232,6 +234,9 @@ class Score extends Model
    // get student anaylysed subject scores in school subjects
    private function getStudentAnalysedSubjectsScores($student_id, $exam_id)
    {
+      $exam = Exam::find($exam_id);
+      $subjectGrading = new SubjectGrading();
+      $subjectTeacher = new SubjectTeacher();
       $schoolSubjects = $this->getSchoolSubjects();
       $subjectScores = $this->fetchStudentAnalysedSubjectScores($student_id, $exam_id);
 
@@ -241,15 +246,25 @@ class Score extends Model
          $schoolSubjects[$sub]->subjectGrade = '';
          $schoolSubjects[$sub]->subjectSectionPosition = '';
          $schoolSubjects[$sub]->subjectClassPosition = '';
+         $schoolSubjects[$sub]->subjectRemarks = '';
+         $schoolSubjects[$sub]->subjectTeacher = '';
+
 
          for ($score=0; $score <count($subjectScores) ; $score++) 
          { 
             if ($schoolSubjects[$sub]->subject_id == $subjectScores[$score]->subject_id) 
             {
+               
+               $teacher = $subjectTeacher->getSubjectTeacherBySectionId($subjectScores[$score]->subject_id, $subjectScores[$score]->section_id);
                $schoolSubjects[$sub]->subjectScore = $subjectScores[$score]->score;
                $schoolSubjects[$sub]->subjectGrade = $subjectScores[$score]->subject_grade;
                $schoolSubjects[$sub]->subjectSectionPosition = $subjectScores[$score]->section_position;
                $schoolSubjects[$sub]->subjectClassPosition = $subjectScores[$score]->class_position;
+               $schoolSubjects[$sub]->subjectTeacher = is_null($teacher) ? '' : $teacher->name_initial;
+               $schoolSubjects[$sub]->subjectRemarks = $subjectGrading->getSubjectGrading(
+                  $subjectScores[$score]->score, 
+                  $schoolSubjects[$sub]->subject_id, 
+                  $exam->class_numeric)['score_remarks'];
             }
          }
       }
@@ -293,13 +308,14 @@ class Score extends Model
    }
 
    //save analysed grades distribution
-   private function saveAnalysedGradesDistribution($gradesData, $exam_id, $section_id)
+   private function saveAnalysedGradesDistribution($gradesData, $exam_id, $section_id, $students_entry)
    {
       DB::table('grades_distribution')->where(['exam_id' => $exam_id, 'section_id' => $section_id])->delete();
       
       return GradesDistribution::create([
          'exam_id' => $exam_id,
          'section_id' => $section_id,
+         'students_entry' => $students_entry,
          'total_points' =>  $gradesData['totalPoints' ],
          'average_grade' =>  $gradesData['averageGrade' ],
          'total_students' => $gradesData['totalStudents' ],
@@ -401,7 +417,7 @@ class Score extends Model
    private function fetchStudentAnalysedExamDetails($student_id, $exam_id)
    {
       return DB::table('students_analysed_exams')
-               ->select('id', 'subjects_entry', 'total_points', 'average_points', 'average_grade', 'section_position', 'class_position')
+               //->select('id', 'exam_id', 'student_id', 'subjects_entry', 'total_points', 'average_points', 'average_grade', 'section_position', 'class_position')
                ->where(['student_id' => $student_id, 'exam_id' => $exam_id])
                ->first();
    }
@@ -1046,6 +1062,39 @@ class Score extends Model
                ->where(['exam_id' => $exam_id])
               // ->orderBy('average_points', 'desc')
                ->get()->toArray();
+   }
+
+   // get class teacher
+   private function getClassTeacher($examDetails)
+   {
+      $classTeacher = [
+         'teacher' => '',
+         'teacher_remarks' => '',
+         'principal_remarks' => ''
+      ];
+
+      $grading = new OverallGrading();
+      $exam = Exam::find($examDetails->exam_id);
+      $section_id = Student::find($examDetails->student_id)->section_id;
+      $teacher = Section::getSectionTeacher($section_id);
+      $remarks = $grading->getOverallGrading($examDetails->total_points, $exam->class_numeric);
+      
+      $classTeacher = [
+         'teacher' => $teacher->name_initial,
+         'teacher_remarks' => $remarks['teacher_remarks'],
+         'principal_remarks' => $remarks['principal_remarks']
+      ];
+      return $classTeacher;
+   }
+
+   //get class entry
+   private function getClassEntries($exam_id, $section_id)
+   {
+      $classEntries = [
+         'sectionEntry' => $this->getAnalysedGradesDistribution($section_id, $exam_id)->students_entry,
+         'classEntry' => $this->getAnalysedGradesDistribution(null, $exam_id)->students_entry
+      ];
+      return $classEntries;
    }
 
 }

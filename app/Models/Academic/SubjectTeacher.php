@@ -73,12 +73,13 @@ class SubjectTeacher extends Model
     ///get subject teacher by section id
     public function getSubjectTeacherBySectionId($subject_id, $section_id)
     {
-         return $this->where([
+     return $this->where([
                     'subject_id' => $subject_id, 
                     'section_id' => $section_id
                     ])
-                    ->join('users', 'subject_teachers.user_id', '=', 'users.id')
-                    ->select('users.name', 'users.initials')
+                    ->join('users', 'users.id', '=', 'subject_teachers.user_id')
+                    ->join('profiles', 'profiles.user_id', '=', 'users.id')
+                    ->select('users.name', 'profiles.name_initial')
                     ->first();
     }
 

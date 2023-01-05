@@ -48,6 +48,7 @@ Route::get('clear-cache', function() {
 });
 
 Route::controller(UserController::class)->middleware('auth')->group(function (){
+    Route::get('home', 'dashboard')->name('home');
     Route::get('dashboard', 'dashboard')->name('dashboard');
     Route::get('profile', 'profile')->name('profile');
     Route::post('get-teacher-sections',  'fetchTeacherSections')->name('get.teachersections');

@@ -41,7 +41,7 @@
                     </thead>
                 </table>
             </div>
-            {{-- <div class="scores">
+            <div class="scores">
                 <!--./student score performance table-->
                 <table>
                     <thead>
@@ -49,36 +49,48 @@
                             <th>CODE</th>
                             <th style="text-align: left">SUBJECT</th>
                             <th>SCORE</th>
+                            <th>S.P</th>
+                            <th>C.P</th>
                             <th style="text-align: left">REMARKS</th>
                             <th>INITIALS</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($student->subjectScores as $subject)
-                            <tr>
-                                <td style="text-align: center"> {{ $subject->subject_code }}</td>
-                                <td style="text-align: left"> {{ $subject->subject_name }}</td>
-                                <td style="text-align: center"> {{ $subject->subjectScore . $subject->subjectGrade }}</td>
-                                <td style="text-align: left"> {{ $subject->subjectRemarks }}</td>
-                                <td style="text-align: center">
-                                    {{ $subject->subjectTeacher ? $subject->subjectTeacher->initials : 'null' }}</td>
-                            </tr>
+                            @if ($subject->subjectScore != '--')
+                                <tr>
+                                    <td style="text-align: center"> {{ $subject->subject_code }}</td>
+                                    <td style="text-align: left"> {{ $subject->subject_name }}</td>
+                                    <td style="text-align: center"> {{ $subject->subjectScore . $subject->subjectGrade }}
+                                    </td>
+                                    <td> {{ $subject->subjectSectionPosition }}</td>
+                                    <td> {{ $subject->subjectClassPosition }}</td>
+                                    <td style="text-align: left"> {{ $subject->subjectRemarks }}</td>
+                                    <td style="text-align: center">{{ $subject->subjectTeacher }}</td>
+                                </tr>
+                            @endif
                         @endforeach
                     </tbody>
                     <tfoot>
                         <tr>
                             <th>&nbsp;</th>
-                            <th style="text-align: left">TOTAL</th>
-                            <th style="text-align: center">{{ $student->points->totalMarks }}/{{ $student->highestScore }}
+                            <th style="text-align: left">SUBJECTS ENTRY : {{ $student->examDetails->subjects_entry }}</th>
+                            <th style="text-align: center">
+                                {{ $student->examDetails->average_points . $student->examDetails->average_grade }}</th>
+                            <th style="text-align: center">
+                                {{ $student->examDetails->section_position . '/' . $student->classEntries['sectionEntry'] }}
                             </th>
-                            <th style="text-align: left">{{ $student->points->averageRemarks }}</th>
-                            <th style="text-align: center">{{ $student->classTeacher->initials }}</th>
+                            <th style="text-align: center">
+                                {{ $student->examDetails->class_position . '/' . $student->classEntries['classEntry'] }}
+                            </th>
+                            <th style="text-align: left">{{ $student->classTeacher['teacher_remarks'] }}</th>
+                            <th style="text-align: center">{{ $student->classTeacher['teacher'] }}</th>
                         </tr>
                     </tfoot>
                 </table>
 
                 <!--./student term performance table -->
-                <table class="outer-table">
+                {{-- <table class="outer-table">
                     <thead>
                         <tr>
                             <th>TERM EXAMS SUMMARY</th>
@@ -214,8 +226,8 @@
                         &nbsp;&nbsp;&nbsp;&nbsp; Designed by Mulan Technologies &nbsp;&nbsp;&nbsp; TEL:
                         0703539208 &nbsp;&nbsp; EMAIL : info@mulan.co.ke
                     </small>
-                </div>
-            </div> --}}
+                </div> --}}
+            </div>
         </div>
     @endforeach
 @endsection
