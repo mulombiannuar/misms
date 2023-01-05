@@ -19,6 +19,7 @@
                             @endforeach
                             <th>ENT</th>
                             <th>PTS</th>
+                            <th>DEV</th>
                             <th>MG</th>
                         </tr>
                     </thead>
@@ -35,6 +36,8 @@
                                 @endforeach
                                 <td><strong>{{ $subject->total_students }}</strong></td>
                                 <td><strong>{{ $subject->average_points }}</strong></td>
+                                <td><strong>{{ $subject->subjectDev > 0 ? '+' . number_format($subject->subjectDev, 2) : number_format($subject->subjectDev, 2) }}</strong>
+                                </td>
                                 <td><strong>{{ $subject->average_grade }}</strong></td>
                             </tr>
                         @endforeach
@@ -60,6 +63,7 @@
                             @endforeach
                             <th>ENT</th>
                             <th>PTS</th>
+                            <th>DEV</th>
                             <th>MG</th>
                         </tr>
                     </thead>
@@ -75,6 +79,8 @@
                                 @endforeach
                                 <td><strong>{{ $subject->total_students }}</strong></td>
                                 <td><strong>{{ $subject->average_points }}</strong></td>
+                                <td><strong>{{ $subject->subjectDev > 0 ? '+' . number_format($subject->subjectDev, 2) : number_format($subject->subjectDev, 2) }}</strong>
+                                </td>
                                 <td><strong>{{ $subject->average_grade }}</strong></td>
                             </tr>
                         @endforeach

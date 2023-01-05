@@ -276,8 +276,8 @@ class ScoreController extends Controller
         $defaultGrades = new DefaultGrade();
         $report = $this->getReportType($report_type);
         
-        //return $score->fetchSectionsAnalysedExamResults($exam_id, $section_numeric);
-        //return $score->fetchClassAnalysedExamResults($exam_id, $section_numeric);
+        //return $score->fetchSectionsAnalysedExamResults($exam_id, $section_numeric, $report_type);
+        //return $score->fetchClassAnalysedExamResults($exam_id, $section_numeric, $report_type);
 
         $pageData = [
             'exam' => $exam,
@@ -287,14 +287,17 @@ class ScoreController extends Controller
             'grades' => $defaultGrades->getDefaultGrades(),
             'sections' => Section::getSectionsByClassNumeric($section_numeric),
             'form' =>  Form::where('form_numeric', $exam->class_numeric)->first(),
-            'sections' =>  $score->fetchSectionsAnalysedExamResults($exam_id, $section_numeric),
-            'classData' => $score->fetchClassAnalysedExamResults($exam_id, $section_numeric),
-        ];
+            'sections' =>  $score->fetchSectionsAnalysedExamResults($exam_id, $section_numeric, $report_type),
+            'classData' => $score->fetchClassAnalysedExamResults($exam_id, $section_numeric, $report_type),
+            'streams' => $score->getStreamsRankingDetails($exam_id, false),
+        ]; 
         
+        $orientation = 'landscape';
+        if($report_type == 8) $orientation = 'portrait';
         $html = view('reports.pdfs.'.$report['view'], $pageData);
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadHTML($html);
-        $pdf->setPaper('A4','landscape');
+        $pdf->setPaper('A4', $orientation);
         return $pdf->stream(ucwords($exam->exam_id.'-'.$exam->name).' '.$report['report'].'.pdf', array('Attachment' => 0));
     }
 
@@ -324,12 +327,12 @@ class ScoreController extends Controller
 
             case 5:
                 $report = 'Students Improvement';
-                $view = 'students_improvement_report';
+                $view = 'class_broadsheet_report';
                 break;
 
             case 6:
                 $report = 'Subjects Improvement';
-                $view = 'subjects_improvement_report';
+                $view = 'subjects_analysis_report';
                 break;
 
             case 7:
@@ -340,6 +343,11 @@ class ScoreController extends Controller
             case 8:
                 $report = 'Students Report Cards';
                 $view = 'students_report_cards';
+                break;
+
+            case 9:
+                $report = 'Streams Improvement';
+                $view = 'streams_ranking_report';
                 break;
             
             default:

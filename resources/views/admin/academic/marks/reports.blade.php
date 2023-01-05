@@ -13,10 +13,11 @@
                         <option value="2">Grades Distribution</option>
                         <option value="3">Subjects Analysis</option>
                         <option value="4">Streams Ranking</option>
+                        <option value="9">Streams Improvement</option>
                         <option value="5">Students Improvement</option>
                         <option value="6">Subjects Improvement</option>
-                        <option value="7">Students Attendance</option>
-                        <option value="8">Report Cards</option>
+                        {{-- <option value="7">Students Attendance</option> --}}
+                        <option value="8">Students Report Cards</option>
                     </x-form.select>
 
                     <x-form.select class="col-md-4 col-sm-12" value="" label="Student Class" name="section_numeric">

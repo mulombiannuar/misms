@@ -91,16 +91,19 @@ class Score extends Model
    }
 
    //get class analysed students single exam results
-   public function fetchClassAnalysedExamResults($exam_id, $section_numeric)
+   public function fetchClassAnalysedExamResults($exam_id, $section_numeric, $report_type)
    {
       $students = Student::getStudentsByClassNumeric($section_numeric)->toArray();
-      $this->getStudentsAnalysedScores($students, $exam_id);
+      $this->getStudentsAnalysedScores($students, $exam_id, $report_type);
       usort($students, array($this, 'sortStudentsByPoints'));
+
+      $gradesData = $this->getAnalysedGradesDistribution(null, $exam_id);
 
       return [
          'students' => $students,
-         'gradesData' => $this->getAnalysedGradesDistribution(null, $exam_id),
-         'subjects' => $this->getAnalysedClassSubjects(null, $exam_id)
+         'gradesData' => $gradesData,
+         'subjects' => $this->getAnalysedClassSubjects(null, $exam_id, $report_type),
+         'examDev' => $this->calculateClassDeviation($gradesData, null)
       ];
    }
 
@@ -128,14 +131,15 @@ class Score extends Model
    }
 
    //Get section analysed single exam results
-   public function fetchSectionsAnalysedExamResults($exam_id, $section_numeric)
+   public function fetchSectionsAnalysedExamResults($exam_id, $section_numeric, $report_type)
    {
       $sections = Section::getSectionsByClassNumeric($section_numeric);
       for ($s=0; $s <count($sections) ; $s++) {
           $students = Student::getStudentsBySectionId($sections[$s]->section_id)->toArray();
-          $sections[$s]->students = $this->getStudentsAnalysedScores($students, $exam_id);
+          $sections[$s]->students = $this->getStudentsAnalysedScores($students, $exam_id, $report_type);
           $sections[$s]->gradesData = $this->getAnalysedGradesDistribution($sections[$s]->section_id, $exam_id);
-          $sections[$s]->subjects = $this->getAnalysedClassSubjects($sections[$s]->section_id, $exam_id);
+          $sections[$s]->subjects = $this->getAnalysedClassSubjects($sections[$s]->section_id, $exam_id, $report_type);
+          $sections[$s]->examDev = $this->calculateClassDeviation($sections[$s]->gradesData, $exam_id);
       }
       return $sections;
    }
@@ -171,7 +175,7 @@ class Score extends Model
    }
 
    // get students analysed exam scores
-   private function getStudentsAnalysedScores($students, $exam_id)
+   private function getStudentsAnalysedScores($students, $exam_id, $report_type)
    {
       for ($s=0; $s <count($students) ; $s++) 
       { 
@@ -180,7 +184,12 @@ class Score extends Model
          $students[$s]->averagePoints = $students[$s]->examDetails->average_points;
          $students[$s]->studentDev = $this->calculateStudentDeviation($students[$s]->examDetails, $students[$s]->student_id);
       }
-      usort($students, array($this, 'sortStudentsByPoints'));
+
+      if ($report_type == 1) {
+          usort($students, array($this, 'sortStudentsByPoints'));
+      } else {
+          usort($students, array($this, 'sortStudentsByDeviation'));
+      }
       return $students;
    }
 
@@ -299,7 +308,6 @@ class Score extends Model
       ]);
    }
 
-   
    //save analysed grades distribution
    private function saveSubjectsAnalysis($subjects, $exam_id, $section_id)
    {
@@ -414,6 +422,15 @@ class Score extends Model
       $points = 0;
       $exams = DB::table('students_analysed_exams')->where('student_id', $student_id)->whereNotIn('id', [$current_id])->orderBy('id', 'DESC')->get();
       if (count($exams) !== 0) $points = $exams[0]->average_points;
+      return $points;
+   }
+
+   //private function get previous exam point
+   private function getSubjectExamPreviousPoints($current_id, $section_id, $subject_id)
+   {
+      $points = 0;
+      $subjects = DB::table('subjects_analysis')->where(['subject_id' => $subject_id, 'section_id' => $section_id])->whereNotIn('id', [$current_id])->orderBy('id', 'DESC')->get();
+      if (count($subjects) !== 0) $points = $subjects[0]->average_points;
       return $points;
    }
 
@@ -592,6 +609,37 @@ class Score extends Model
          }
       }
    }
+
+   //.Assign student position 
+   private function assignStudentPositionByDeviation($student_id, $students, $minSubjects)
+   {
+      usort($students, array($this, 'sortStudentsByPoints'));
+      for ($s=0; $s <count($students) ; $s++) 
+      { 
+         $students[$s]->classPosition = 'Z';
+         if ($students[$s]->subjectsEntry >= $minSubjects) 
+         {
+            $students[$s]->classPosition = $s + 1;
+            if ($s > 0) 
+            {
+               $previousIndex = $s - 1;
+               if ($students[$s]->studentDev == $students[$previousIndex]->studentDev)
+               {
+                  $students[$s]->classPosition = $students[$previousIndex]->classPosition;
+               }
+               else
+               {
+                  $students[$s]->classPosition = $s + 1;
+               }
+            }
+            
+            if ($students[$s]->student_id == $student_id) 
+            {
+              return  $students[$s]->classPosition;
+            }
+         }
+      }
+   }
    
    //. Get grades distribution 
    private function getGradeDistribution($students)
@@ -651,18 +699,32 @@ class Score extends Model
    }
 
    // get class analysed grades distribution
-   private function getAnalysedClassSubjects($section_id, $exam_id)
+   private function getAnalysedClassSubjects($section_id, $exam_id, $report_type)
    {
       $subjects = DB::table('subjects_analysis')
                     ->select('subjects_analysis.*', 'subjects.subject_name')
                     ->where(['exam_id' => $exam_id, 'section_id' => $section_id])
                     ->join('subjects', 'subjects.subject_id', '=', 'subjects_analysis.subject_id')
-                    ->get();
+                    ->get()->toArray();
       for ($s=0; $s <count($subjects) ; $s++) { 
          $subjects[$s]->classPosition = $this->getAnalysedSubjectPosition($subjects[$s]->subject_id, $exam_id, null)->class_position;
          $subjects[$s]->sectionPosition = $this->getAnalysedSubjectPosition($subjects[$s]->subject_id, $exam_id, $section_id)->class_position;
+         $subjects[$s]->subjectDev = $this->calculateSubjectDeviation($subjects[$s], $exam_id, $section_id);
       }
+      
+      if ($report_type == 6) 
+      usort($subjects, array($this, 'sortSubjectsByDeviation'));
       return $subjects;
+   }
+
+   //calculate student deviation
+   private function calculateSubjectDeviation($subject, $exam_id, $section_id)
+   {
+      $dev = 0;
+      $currentPoints = $subject->average_points;
+      $previousPoints = $this->getSubjectExamPreviousPoints($subject->id, $section_id, $subject->subject_id);
+      $dev = $currentPoints - $previousPoints;
+      return $dev;
    }
 
    //get subject analysed positions
@@ -769,6 +831,54 @@ class Score extends Model
       }
    }
 
+    //.Assign subjects positions
+   private function assignStreamPosition($section_id, $sections)
+   {
+      for ($s=0; $s <count($sections) ; $s++) 
+      { 
+         $sections[$s]->position = $s + 1;
+         if ($s > 0) 
+         {
+            $previousIndex = $s - 1;
+            if ($sections[$s]->average_points == $sections[$previousIndex]->average_points)
+            {
+               $sections[$s]->position = $sections[$previousIndex]->position;
+            }
+            else
+            {
+               $sections[$s]->position = $s + 1;
+            }
+         }
+
+         if ($sections[$s]->section_id == $section_id) 
+         return  $sections[$s]->position;
+      }
+   }
+
+   //.Assign subjects positions
+   private function assignStreamPositionByDeviation($section_id, $sections)
+   {
+      for ($s=0; $s <count($sections) ; $s++) 
+      { 
+         $sections[$s]->position = $s + 1;
+         if ($s > 0) 
+         {
+            $previousIndex = $s - 1;
+            if ($sections[$s]->examDev == $sections[$previousIndex]->examDev)
+            {
+               $sections[$s]->position = $sections[$previousIndex]->position;
+            }
+            else
+            {
+               $sections[$s]->position = $s + 1;
+            }
+         }
+
+         if ($sections[$s]->section_id == $section_id) 
+         return  $sections[$s]->position;
+      }
+   }
+
    // get studebt subject scores optionality
    private function getStudentSubjectScoresOptionality($subjectScores)
    {
@@ -833,6 +943,17 @@ class Score extends Model
        return -1;
    }
 
+   // Sort subjects by deviation
+   public static function sortSubjectsByDeviation($sub_a, $sub_b)
+   {
+      if($sub_a->subjectDev == $sub_b->subjectDev)
+       return 0;
+      if($sub_a->subjectDev < $sub_b->subjectDev)
+       return 1;
+      if($sub_a->subjectDev > $sub_b->subjectDev)
+       return -1;
+   }
+
    // Sort students by points
    public static function sortStudentsByPoints($student_a, $student_b)
    {
@@ -843,6 +964,88 @@ class Score extends Model
        return 1;
       if($student_a->averagePoints > $student_b->averagePoints)
        return -1;
+   }
+
+   // Sort students by student deviation
+   public static function sortStudentsByDeviation($student_a, $student_b)
+   {
+      if($student_a->studentDev == $student_b->studentDev)
+       return 0;
+      if($student_a->studentDev < $student_b->studentDev)
+       return 1;
+      if($student_a->studentDev > $student_b->studentDev)
+       return -1;
+   }
+
+   // Sort streams by points
+   public static function sortStreamsByPoints($stream_a, $stream_b)
+   {
+      if($stream_a->average_points == $stream_b->average_points)
+       return 0;
+      if($stream_a->average_points < $stream_b->average_points)
+       return 1;
+      if($stream_a->average_points > $stream_b->average_points)
+       return -1;
+   }
+
+   // Sort exam by deviation
+   public static function sortByExamDeviation($stream_a, $stream_b)
+   {
+      if($stream_a->examDev == $stream_b->examDev)
+       return 0;
+      if($stream_a->examDev < $stream_b->examDev)
+       return 1;
+      if($stream_a->examDev > $stream_b->examDev)
+       return -1;
+   }
+
+   // calculate class deviation
+   private function calculateClassDeviation($gradesData, $section_id)
+   {
+      $dev = 0;
+      $currentPoints = $gradesData->average_points;
+      $previousPoints = $this->getClassExamPreviousPoints($gradesData->id, $section_id);
+      $dev = $currentPoints - $previousPoints;
+      return $dev;
+   }
+
+   //private function get previous class point
+   private function getClassExamPreviousPoints($current_id, $section_id)
+   {
+      $points = 0;
+      $exams = DB::table('grades_distribution')->where(['section_id' => $section_id])->whereNotIn('id', [$current_id])->orderBy('id', 'DESC')->get();
+      if (count($exams) !== 0) $points = $exams[0]->average_points;
+      return $points;
+   }
+
+   //get stream ranking details
+   public function getStreamsRankingDetails($exam_id, $report_type)
+   {
+      $streams = $this->getStreamsRanking($exam_id);
+      for ($s=0; $s <count($streams) ; $s++) { 
+         $gradesData = $this->getAnalysedGradesDistribution($streams[$s]->section_id, $exam_id);
+         $streams[$s]->examDev = $this->calculateClassDeviation($gradesData, $exam_id);
+         $streams[$s]->position = $this->assignStreamPosition($streams[$s]->section_id, $streams);
+         if ($report_type == 9) 
+         $streams[$s]->position = $this->assignStreamPositionByDeviation($streams[$s]->section_id, $streams);
+      }
+      if ($report_type == 9) {
+         usort($streams, array($this, 'sortByExamDeviation'));
+      } else {
+          usort($streams, array($this, 'sortStreamsByPoints'));
+      }
+      return $streams;
+   }
+
+   // get streams ranking
+   public function getStreamsRanking($exam_id)
+   {
+      return DB::table('grades_distribution')
+               ->join('sections', 'sections.section_id', '=', 'grades_distribution.section_id')
+               ->select('grades_distribution.*', 'sections.section_name', 'sections.section_numeric')
+               ->where(['exam_id' => $exam_id])
+              // ->orderBy('average_points', 'desc')
+               ->get()->toArray();
    }
 
 }

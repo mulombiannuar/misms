@@ -40,7 +40,7 @@
                                 <td><strong>{{ $student->examDetails->subjects_entry }}</strong></td>
                                 <td><strong>{{ $student->examDetails->total_points }}</strong></td>
                                 <td><strong>{{ $student->examDetails->average_points }}</strong></td>
-                                <td><strong>{{ $student->studentDev > 0 ? '+' . $student->studentDev : $student->studentDev }}</strong>
+                                <td><strong>{{ $student->studentDev > 0 ? '+' . number_format($student->studentDev, 2) : number_format($student->studentDev, 2) }}</strong>
                                 </td>
                                 <td><strong>{{ $student->examDetails->average_grade }}</strong></td>
                             </tr>
@@ -90,7 +90,7 @@
                             <td><strong>{{ $student->examDetails->subjects_entry }}</strong></td>
                             <td><strong>{{ $student->examDetails->total_points }}</strong></td>
                             <td><strong>{{ $student->examDetails->average_points }}</strong></td>
-                            <td><strong>{{ $student->studentDev > 0 ? '+' . $student->studentDev : $student->studentDev }}</strong>
+                            <td><strong>{{ $student->studentDev > 0 ? '+' . number_format($student->studentDev, 2) : number_format($student->studentDev, 2) }}</strong>
                             </td>
                             <td><strong>{{ $student->examDetails->average_grade }}</strong></td>
                         </tr>
