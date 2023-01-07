@@ -234,6 +234,7 @@
     <div class="wrapper">
         @yield('content')
     </div>
+    @stack('scripts')
 </body>
 
 </html>

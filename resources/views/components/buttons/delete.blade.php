@@ -4,7 +4,7 @@
         onclick="return confirm('Do you really want to delete this record?')">
         @csrf
         @method('DELETE')
-        <button type="submit" class="btn btn-danger {{ $btnSize }}"><i class="fa fa-trash"></i>
+        <button type="submit" class="btn btn-danger {{ $btnSize }}" {{ $attributes }}><i class="fa fa-trash"></i>
             Delete</button>
     </form>
 </div>

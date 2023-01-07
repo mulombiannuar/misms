@@ -57,6 +57,9 @@ class SessionController extends Controller
         ];
         if(Session::where($data)->first())
         return redirect(route('admin.sessions.index'))->with('danger', 'Session with above details already exists');
+
+        if(Session::where('session', $request->session)->count() >= 3)
+        return redirect(route('admin.sessions.index'))->with('danger', 'You cannot have more than three sessions per year');
        
         Session::insert($data);
 
@@ -77,7 +80,7 @@ class SessionController extends Controller
     public function show(Session $session)
     {
         $pageData = [
-            'title' => 'Show Sessions',
+            'title' => 'Session',
             'page_name' => 'settings',
             'session' => $session
           ];
@@ -181,5 +184,18 @@ class SessionController extends Controller
         User::saveUserLog($activity_type, $description);
 
         return redirect(route('admin.sessions.index'))->with('success', 'Session deactivated successfully'); 
+     }
+
+     public function closeSession($id )
+     {
+        Session::where('session_id', $id)->update(['status'=> 0, 'is_closed' => 1]); 
+        $session = Session::find($id);
+
+        //Save user log
+        $activity_type = 'Session Closure';
+        $description = 'Successfully closed session of opening date '.$session->opening_date.' an closing date of '.$session->closing_date;
+        User::saveUserLog($activity_type, $description);
+
+        return redirect(route('admin.sessions.index'))->with('success', 'Session closed successfully'); 
      }
 }

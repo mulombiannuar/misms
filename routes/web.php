@@ -93,6 +93,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::controller(SessionController::class)->group(function(){
         Route::put('sessions/activate/{session}', 'activateSession')->name('sessions.activate');
         Route::put('sessions/deactivate/{session}', 'deactivateSession')->name('sessions.deactivate');
+        Route::put('sessions/close/{session}', 'closeSession')->name('sessions.close');
         Route::resource('sessions', SessionController::class);
     });
 
@@ -201,7 +202,7 @@ Route::middleware(['auth'])->prefix('marks')->name('marks.')->group(function(){
     Route::controller(ScoreController::class)->middleware(['role:admin'])->group(function(){
          Route::get('reports', 'reports')->name('reports.index');
          Route::get('reports/type', 'reportType')->name('reports.type');
-
+         
          Route::post('scores/save', 'saveStudentScore')->name('scores.save');
          Route::get('scores/analysis', 'analysis')->name('scores.analysis');
          Route::get('scores/analysed', 'analysedScores')->name('scores.analysed');

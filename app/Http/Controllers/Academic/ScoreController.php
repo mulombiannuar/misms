@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers\Academic;
 
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\StoreStudentScoreRequest;
 use App\Http\Requests\StoreStudentsScoresRequest;
 use App\Models\Academic\Exam;
 use App\Models\Academic\Form;
+use App\Models\Academic\Graphs;
 use App\Models\Academic\Score;
 use App\Models\Academic\Section;
 use App\Models\Admin\DefaultGrade;
+use App\Models\Admin\Session;
 use App\Models\User;
 use App\Utilities\Utilities;
 use Carbon\Carbon;
@@ -272,24 +275,32 @@ class ScoreController extends Controller
         return back()->with('warning', 'You cannot view intended reports since no analysed scores have been found for the selected exam');
         
         $score = new Score();
+        $graphs = new Graphs();
         $exam = Exam::find($exam_id);
         $defaultGrades = new DefaultGrade();
+        $settings = new SettingsController();
+        $activeSesion = Session::getActiveSession();
         $report = $this->getReportType($report_type);
+        $sections = $score->fetchSectionsAnalysedExamResults($exam_id, $section_numeric, $report_type);
+        $classData = $score->fetchClassAnalysedExamResults($exam_id, $section_numeric, $report_type);
         
         //return $score->fetchSectionsAnalysedExamResults($exam_id, $section_numeric, $report_type);
         //return $score->fetchClassAnalysedExamResults($exam_id, $section_numeric, $report_type);
+        //return $graphs->getClassSubjectsPeformanceGraph($classData['graphData']);
 
         $pageData = [
             'exam' => $exam,
 			'page_name' => 'exams',
+            'sections' =>  $sections,
+            'classData' => $classData,
+            'school' => $settings->getSchoolDetails(),
             'title' => ucwords($report['report']),
             'subjects' => $score->getSchoolSubjects(),
             'grades' => $defaultGrades->getDefaultGrades(),
-            'sections' => Section::getSectionsByClassNumeric($section_numeric),
             'form' =>  Form::where('form_numeric', $exam->class_numeric)->first(),
-            'sections' =>  $score->fetchSectionsAnalysedExamResults($exam_id, $section_numeric, $report_type),
-            'classData' => $score->fetchClassAnalysedExamResults($exam_id, $section_numeric, $report_type),
             'streams' => $score->getStreamsRankingDetails($exam_id, false),
+            'dates' => Session::getClosingAndOpeningDates($activeSesion->session_id),
+            'classSubjectsGraph' => $graphs->getClassSubjectsPeformanceGraph($classData['graphData'])
         ]; 
         
         $orientation = 'landscape';
@@ -298,7 +309,7 @@ class ScoreController extends Controller
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadHTML($html);
         $pdf->setPaper('A4', $orientation);
-        return $pdf->stream(ucwords($exam->exam_id.'-'.$exam->name).' '.$report['report'].'.pdf', array('Attachment' => 0));
+        return $pdf->stream(ucwords($exam->exam_id.'-'.$exam->name).' '.$report['report'].'-'.now().'.pdf', array('Attachment' => 0));
     }
 
     private function getReportType($type)

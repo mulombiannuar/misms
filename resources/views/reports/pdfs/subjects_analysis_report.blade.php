@@ -50,7 +50,9 @@
         <h6>CLASS PERFORMANCE / {{ strtoupper($form->form_name) }} /
             {{ $exam->name }} /
             {{ $exam->year }}</h6>
-        <div>
+
+        <!-- /.SUBJECTS -->
+        <div style="page-break-after: always">
             <h6>Subjects Analysis</h6>
             <div>
                 <table class="table table-sm table-bordered">
@@ -88,5 +90,48 @@
                 </table>
             </div>
         </div>
+        <!-- /.GRAPH -->
+        <br>
+        <h6>Subjects Analysis Graph</h6>
+        <div style="height: 500px; width: 100px;" id="overallChart">
+            <img src="data:image/png;base64,{{ base64_encode($classSubjectsGraph) }}" />
+        </div>
     </main>
 @endsection
+{{-- @push('scripts')
+    <script src="{{ asset('assets/dist/js/highcharts.min.js') }}"></script>
+    <script type="text/javascript">
+        var xData = @php echo $classData['graphData']->subjects @endphp;
+        var yData = @php echo $classData['graphData']->mean_scores @endphp;
+        Highcharts.chart('overallChart', {
+            chart: {
+                type: 'line'
+            },
+            title: {
+                text: 'Overall Subject Performance Graph'
+            },
+
+            xAxis: {
+                categories: xData
+            },
+            yAxis: {
+                title: {
+                    text: 'Subjects Mean Scores'
+                },
+            },
+            plotOptions: {
+                line: {
+                    dataLabels: {
+                        enabled: true
+                    },
+                    enableMouseTracking: false
+                },
+                pointStart: 0
+            },
+            series: [{
+                name: 'Mean Score',
+                data: yData
+            }, ]
+        });
+    </script>
+@endpush --}}

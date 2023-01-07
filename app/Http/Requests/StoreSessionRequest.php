@@ -26,8 +26,8 @@ class StoreSessionRequest extends FormRequest
         return [
             'session' => 'required',
             'term' => 'required',
-            'opening_date' => 'required|date|before_or_equal:opening_date',
-            'closing_date' => 'required|date|after:tomorrow',
+            'opening_date' => 'required|date',
+            'closing_date' => 'required|date|after:opening_date',
          ];
     }
 }
