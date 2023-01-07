@@ -22,10 +22,11 @@ class OverallGradingController extends Controller
     public function index()
     {
         $grade = new DefaultGrade();
+        //return $grade->getGrades();
         $pageData = [
 			'page_name' => 'gradings',
             'title' => 'Manage Subjects Gradings',
-            'grades' => $grade->getDefaultGrades(),
+            'grades' => $grade->getGrades(),
             'forms'=> Form::orderBy('form_numeric', 'asc')->get(),
         ];
         return view('admin.academic.subjects.overall_gradings', $pageData); 

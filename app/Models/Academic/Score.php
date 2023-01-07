@@ -113,6 +113,39 @@ class Score extends Model
       ];
    }
 
+   //check if all sections have submitted their subject scores
+   public function checkIfSectionsHaveSubmittedAllScores($exam_id, $section_numeric)
+   {
+      $sections = Section::getSectionsByClassNumeric($section_numeric);
+      for ($s=0; $s <count($sections) ; $s++) { 
+         $subjects = StudentSubject::getSectionSubjects($sections[$s]->section_id);
+         $sections[$s]->subjects = $this->sectionSubjectsSubmissionStatus($subjects, $exam_id, $sections[$s]->section_id);
+      }
+      return $sections;
+   }
+
+   //section subjects submission status
+   private function sectionSubjectsSubmissionStatus($subjects, $exam_id, $section_id)
+   {
+      $score =  new SubmittedScore();
+      $submittedScores = $score->getSectionSubmittedScores($section_id, $exam_id);
+      for ($sub=0; $sub < count($subjects); $sub++) { 
+          $subjects[$sub]->submission_id = null;
+          $subjects[$sub]->submitted_date = null;
+          $subjects[$sub]->teacher = null;
+          $subjects[$sub]->is_submitted = false;
+
+          for ($score=0; $score <count($submittedScores) ; $score++) { 
+            if ($subjects[$sub]->subject_id == $submittedScores[$score]->subject_id) {
+               $subjects[$sub]->submission_id = $submittedScores[$score]->subm_id;
+               $subjects[$sub]->submitted_date = $submittedScores[$score]->created_at;
+               $subjects[$sub]->teacher = $submittedScores[$score]->name;
+               $subjects[$sub]->is_submitted = true;
+            }
+          }
+      }
+      return $subjects;
+   }
 
    //Get section single exam results
    public function fetchSectionsStudentsSingleExamResults($exam_id, $section_numeric)

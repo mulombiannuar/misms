@@ -11,6 +11,14 @@ class DefaultGrade extends Model
     protected $table = 'default_grades';
     protected $primaryKey = 'grade_id';
 
+    public function getGrades()
+    {
+        if($this->get()){
+            return $this->get();
+        }
+        return $this->defaultGrades();;
+    }
+    
     public function getDefaultGrades()
     {
         // if($this->get()){

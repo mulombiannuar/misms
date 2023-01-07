@@ -90,7 +90,7 @@
                                                                     <label for="exampleInputText1">Class Teacher</label>
                                                                 @endif
                                                                 <textarea name="score_remarks[]" class="form-control" cols="10" rows="2" placeholder="Class teacher Remarks"
-                                                                    autocomplete="on" required>{{ $grade->score_remarks }}</textarea>
+                                                                    autocomplete="on" required>{{ $grade->teacher_remarks }}</textarea>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-5 col-sm-12">
@@ -172,7 +172,7 @@
                                                                     <label for="exampleInputText1">Class Teacher</label>
                                                                 @endif
                                                                 <textarea name="score_remarks[]" class="form-control" cols="10" rows="2"
-                                                                    placeholder="Class teacher Remarks" autocomplete="on" required>{{ $grade->score_remarks }}</textarea>
+                                                                    placeholder="Class teacher Remarks" autocomplete="on" required>{{ $grade->teacher_remarks }}</textarea>
                                                             </div>
                                                         </div>
                                                         <div class="col-md-5 col-sm-12">
@@ -181,7 +181,7 @@
                                                                     <label for="exampleInputText1">Head Teacher</label>
                                                                 @endif
                                                                 <textarea name="principal_remarks[]" class="form-control" cols="10" rows="2"
-                                                                    placeholder="Enter headteacher remarks" autocomplete="on" required>{{ $grade->score_remarks }}</textarea>
+                                                                    placeholder="Enter headteacher remarks" autocomplete="on" required>{{ $grade->principal_remarks }}</textarea>
                                                             </div>
                                                         </div>
                                                     </div>

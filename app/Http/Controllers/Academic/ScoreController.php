@@ -233,6 +233,7 @@ class ScoreController extends Controller
         $exam = Exam::find($exam_id);
         $defaultGrades = new DefaultGrade();
 
+        return $score->checkIfSectionsHaveSubmittedAllScores($exam_id, $section_numeric);
         //return $score->fetchClassStudentsSingleExamResults($exam_id, $section_numeric);
         //return $score->fetchSectionsStudentsSingleExamResults($exam_id, $section_numeric);
 

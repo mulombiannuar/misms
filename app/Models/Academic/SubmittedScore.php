@@ -58,4 +58,14 @@ class SubmittedScore extends Model
                   ->orderBy('submitted_scores.subm_id', 'desc')
                   ->get();
     }
+
+    public function getSectionSubmittedScores($section_id, $exam_id)
+    {
+       return DB::table('submitted_scores')
+                  ->join('users', 'users.id', '=', 'submitted_scores.teacher_id')
+                  ->select('submitted_scores.*', 'users.name')
+                  ->where(['section_id' => $section_id, 'exam_id' => $exam_id])
+                  ->get();
+    }
+    
 }
