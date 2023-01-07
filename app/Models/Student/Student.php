@@ -75,6 +75,21 @@ class Student extends Model
                   ->first();
     }
 
+    public static function getStudentByStudentId($student_id)
+    {
+        return  DB::table('students')
+                  ->where(['users.deleted_at' => null, 'student_id' => $student_id])
+                  ->join('users', 'users.id', '=', 'students.student_user_id' )
+                  ->join('sections', 'sections.section_id', '=', 'students.section_id')
+                  ->select(
+                    'students.*', 
+                    'name', 
+                    'sections.section_name', 
+                    'sections.section_numeric', 
+                    )
+                  ->first();
+    }
+
     public static function getStudentsBySectionId($section_id)
     {
         return  DB::table('students')

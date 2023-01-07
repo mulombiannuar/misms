@@ -39,6 +39,7 @@ class Section extends Model
                  ->join('users', 'users.id', '=', 'sections.section_teacher')
                  ->join('profiles', 'profiles.user_id', '=', 'users.id')
                  ->where('section_id', $section_id)
+                 ->select('name', 'email', 'name_initial')
                  ->first(); 
     }
 

@@ -202,6 +202,7 @@ Route::middleware(['auth'])->prefix('marks')->name('marks.')->group(function(){
     Route::controller(ScoreController::class)->middleware(['role:admin'])->group(function(){
          Route::get('reports', 'reports')->name('reports.index');
          Route::get('reports/type', 'reportType')->name('reports.type');
+         Route::get('student-report/student={student_id}&exam={exam}', 'studentReport')->name('reports.studentreport');
          
          Route::post('scores/save', 'saveStudentScore')->name('scores.save');
          Route::get('scores/analysis', 'analysis')->name('scores.analysis');

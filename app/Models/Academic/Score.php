@@ -184,6 +184,21 @@ class Score extends Model
        return $students;
    }
 
+   //get student analysed exam scores
+   public function getStudentAnalysedExamScores($student_id, $exam_id)
+   {
+      $student = new stdClass;
+      $student->studentData = Student::getStudentByStudentId($student_id);
+      $student->subjectScores = $this->getStudentAnalysedSubjectsScores($student_id, $exam_id);
+      $student->examDetails = $this->fetchStudentAnalysedExamDetails($student_id, $exam_id);
+      $student->averagePoints = $student->examDetails->average_points;
+      $student->studentDev = $this->calculateStudentDeviation($student->examDetails, $student_id);
+      $student->classTeacher = $this->getClassTeacher($student->examDetails);
+      $student->classEntries = $this->getClassEntries($exam_id, $student->examDetails->section_id );
+      $student->otherExams = $this->fetchStudentAnalysedExams($student_id, $exam_id);
+      return $student;
+   }
+
    // get students analysed exam scores
    private function getStudentsAnalysedScores($students, $exam_id, $report_type)
    {
@@ -475,6 +490,37 @@ class Score extends Model
                ->where('student_id', $student_id)
                //->whereNotIn('exam_id', [$exam_id])
                ->orderBy('id', 'desc')
+               ->get();
+   }
+
+   // get all students single exam analysed scores
+   public function getStudentsAnalysedExamScores($exam_id)
+   {
+      $students = $this->fetchStudentsAnalysedExams($exam_id);
+      for ($s=0; $s <count($students) ; $s++) { 
+         $students[$s]->examData = $this->getStudentAnalysedExamScores($students[$s]->student_id, $exam_id);
+      }
+      return $students;
+   }
+
+   //fetch all student analysed exams
+   private function fetchStudentsAnalysedExams($exam_id)
+   {
+      return DB::table('students_analysed_exams')
+               ->select(
+                  'name',
+                  'section_name',
+                  'kcpe_marks',
+                  'section_numeric',
+                  'admission_no', 
+                  'class_position',
+                  'students.student_id',
+                  )
+               ->join('students', 'students.student_id', '=', 'students_analysed_exams.student_id')
+               ->join('sections', 'sections.section_id', '=', 'students.section_id')
+               ->join('users', 'users.id', '=', 'students.student_user_id')
+               ->where('exam_id', $exam_id)
+               ->orderBy('class_position', 'asc')
                ->get();
    }
 

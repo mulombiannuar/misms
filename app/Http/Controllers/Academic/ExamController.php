@@ -7,6 +7,7 @@ use App\Http\Requests\StoreExamRequest;
 use App\Http\Requests\UpdateExamRequest;
 use App\Models\Academic\Exam;
 use App\Models\Academic\Form;
+use App\Models\Academic\Score;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -83,12 +84,16 @@ class ExamController extends Controller
      */
     public function show($id)
     {
+        $score = new Score();
         $exam = Exam::find($id);
+        //return $students = $score->getStudentsAnalysedExamScores($id);
         $pageData = [
 			'page_name' => 'exams',
             'exam' =>  $exam,
+            'subjects' => $score->getSchoolSubjects(),
+            'students' => $score->getStudentsAnalysedExamScores($id),
             'title' => ucwords($exam->name.'-Term'.$exam->term.'-'.$exam->year),
-            'forms' =>  Form::orderBy('form_numeric', 'asc')->get()
+            'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
         ];
         return view('admin.academic.exams.show', $pageData);
     }

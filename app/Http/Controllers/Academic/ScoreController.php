@@ -14,6 +14,7 @@ use App\Models\Academic\Score;
 use App\Models\Academic\Section;
 use App\Models\Admin\DefaultGrade;
 use App\Models\Admin\Session;
+use App\Models\Student\Student;
 use App\Models\User;
 use App\Utilities\Utilities;
 use Carbon\Carbon;
@@ -310,6 +311,36 @@ class ScoreController extends Controller
         $pdf->loadHTML($html);
         $pdf->setPaper('A4', $orientation);
         return $pdf->stream(ucwords($exam->exam_id.'-'.$exam->name).' '.$report['report'].'-'.now().'.pdf', array('Attachment' => 0));
+    }
+
+    public function studentReport($student_id, $exam_id)
+    {
+        $score = new Score();
+        $exam = Exam::find($exam_id);
+        $settings = new SettingsController();
+        $studentData = Student::find($student_id);
+        $activeSesion = Session::getActiveSession();
+
+        $student = $score->getStudentAnalysedExamScores($student_id, $exam_id);
+        if (is_null($student) || empty($student))  
+        return back()->with('warning', 'No analysed scores records found for this student. Make sure you have analysed this exam scores');
+
+         $pageData = [
+            'exam' => $exam,
+            'student' => $student,
+			'page_name' => 'exams',
+            'school' => $settings->getSchoolDetails(),
+            'subjects' => $score->getSchoolSubjects(),
+            'graph' => Graphs::getStudentPeformanceGraph($student_id),
+            'dates' => Session::getClosingAndOpeningDates($activeSesion->session_id),
+            'title' => ucwords($studentData->admission_no).' Report Card',
+        ]; 
+      
+        $html = view('reports.pdfs.student_report_card', $pageData);
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadHTML($html);
+        $pdf->setOptions(['isRemoteEnabled' => true, 'isHtml5ParserEnabled' => true]);
+        return $pdf->stream($exam_id.'-'.$student->studentData->student_id.'-reportcard-'.$student->studentData->admission_no.'-'.$exam->year.'.pdf', array('Attachment' => 0));
     }
 
     private function getReportType($type)
