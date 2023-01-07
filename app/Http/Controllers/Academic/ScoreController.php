@@ -233,9 +233,22 @@ class ScoreController extends Controller
         $exam = Exam::find($exam_id);
         $defaultGrades = new DefaultGrade();
 
-        return $score->checkIfSectionsHaveSubmittedAllScores($exam_id, $section_numeric);
+       $sections = $score->checkIfSectionsHaveSubmittedAllScores($exam_id, $section_numeric);
         //return $score->fetchClassStudentsSingleExamResults($exam_id, $section_numeric);
         //return $score->fetchSectionsStudentsSingleExamResults($exam_id, $section_numeric);
+        for ($s=0; $s <count($sections) ; $s++) { 
+            if ($sections[$s]->has_submitted ==  false) {
+                $pageData = [
+                    'exam' => $exam,
+                    'page_name' => 'exams',
+                    'sections' =>  $sections,
+                    'title' => ucwords($exam->name). ' Subjects Entry',
+                    'subjects' => $score->getSchoolSubjects(),
+                    'form' =>  Form::where('form_numeric', $exam->class_numeric)->first(),
+                ];
+                return view('admin.academic.marks.sections_submissions', $pageData);
+            }
+        }
 
         $pageData = [
             'exam' => $exam,

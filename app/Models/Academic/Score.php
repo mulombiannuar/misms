@@ -120,6 +120,7 @@ class Score extends Model
       for ($s=0; $s <count($sections) ; $s++) { 
          $subjects = StudentSubject::getSectionSubjects($sections[$s]->section_id);
          $sections[$s]->subjects = $this->sectionSubjectsSubmissionStatus($subjects, $exam_id, $sections[$s]->section_id);
+         $sections[$s]->has_submitted = $this->hasSubmitted($sections[$s]->subjects);
       }
       return $sections;
    }
@@ -145,6 +146,18 @@ class Score extends Model
           }
       }
       return $subjects;
+   }
+
+   //has submitted
+   private function hasSubmitted($subjects)
+   {
+      for ($s=0; $s <count($subjects) ; $s++) { 
+         if ($subjects[$s]->is_submitted == false) {
+            return false;
+            break;
+         }
+      }
+      return true;
    }
 
    //Get section single exam results
@@ -522,7 +535,7 @@ class Score extends Model
                ->join('exams', 'exams.exam_id', '=', 'students_analysed_exams.exam_id')
                ->where('student_id', $student_id)
                //->whereNotIn('exam_id', [$exam_id])
-               ->orderBy('id', 'desc')
+               ->orderBy('id', 'asc')
                ->get();
    }
 
