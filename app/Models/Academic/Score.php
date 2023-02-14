@@ -32,7 +32,7 @@ class Score extends Model
        return DB::table('student_subjects')
                  ->join('subjects', 'student_subjects.subject_id', '=', 'subjects.subject_id')
                  ->where('student_id', $student_id)
-                 ->select('*')
+                 ->select('student_subjects.subject_id', 'subject_name')
                  ->get();
     }
 
@@ -233,9 +233,12 @@ class Score extends Model
    //get student analysed exam scores
    public function getStudentAnalysedExamScores($student_id, $exam_id)
    {
+      $exam = Exam::find($exam_id);
+      $subjectScores = $this->fetchStudentAnalysedSubjectScores($student_id, $exam_id);
+
       $student = new stdClass;
       $student->studentData = Student::getStudentByStudentId($student_id);
-      $student->subjectScores = $this->getStudentAnalysedSubjectsScores($student_id, $exam_id);
+      $student->subjectScores = $this->getStudentAnalysedSubjectsScores($student_id, $exam->class_numeric, $subjectScores);
       $student->examDetails = $this->fetchStudentAnalysedExamDetails($student_id, $exam_id);
       $student->averagePoints = $student->examDetails->average_points;
       $student->studentDev = $this->calculateStudentDeviation($student->examDetails, $student_id);
@@ -248,9 +251,11 @@ class Score extends Model
    // get students analysed exam scores
    private function getStudentsAnalysedScores($students, $exam_id, $report_type)
    {
+      $exam = Exam::find($exam_id);
       for ($s=0; $s <count($students) ; $s++) 
       { 
-         $students[$s]->subjectScores = $this->getStudentAnalysedSubjectsScores($students[$s]->student_id, $exam_id);
+         $subjectScores = $this->fetchStudentAnalysedSubjectScores($students[$s]->student_id, $exam_id);
+         $students[$s]->subjectScores = $this->getStudentAnalysedSubjectsScores($exam->class_numeric, $subjectScores);
          $students[$s]->examDetails = $this->fetchStudentAnalysedExamDetails($students[$s]->student_id, $exam_id);
          $students[$s]->averagePoints = $students[$s]->examDetails->average_points;
          $students[$s]->studentDev = $this->calculateStudentDeviation($students[$s]->examDetails, $students[$s]->student_id);
@@ -306,13 +311,11 @@ class Score extends Model
    }
 
    // get student anaylysed subject scores in school subjects
-   private function getStudentAnalysedSubjectsScores($student_id, $exam_id)
+   private function getStudentAnalysedSubjectsScores($class_numeric, $subjectScores)
    {
-      $exam = Exam::find($exam_id);
       $subjectGrading = new SubjectGrading();
       $subjectTeacher = new SubjectTeacher();
       $schoolSubjects = $this->getSchoolSubjects();
-      $subjectScores = $this->fetchStudentAnalysedSubjectScores($student_id, $exam_id);
 
       for ($sub=0; $sub <count($schoolSubjects) ; $sub++) 
       { 
@@ -336,7 +339,7 @@ class Score extends Model
                $schoolSubjects[$sub]->subjectRemarks = $subjectGrading->getSubjectGrading(
                   $subjectScores[$score]->score, 
                   $schoolSubjects[$sub]->subject_id, 
-                  $exam->class_numeric)['score_remarks'];
+                  $class_numeric)['score_remarks'];
             }
          }
       }
@@ -381,6 +384,30 @@ class Score extends Model
       return true;
    }
 
+    //save analysed student mean exam
+   private function saveAnalysedStudentMeanExam($students, $section_id, $class_entry, $year, $term)
+   {
+      DB::table('students_analysed_mean_exams')->where(['year' => $year, 'term' => $term, 'section_id' => $section_id])->delete();
+      for ($s=0; $s <count($students) ; $s++) { 
+         DB::table('students_analysed_mean_exams')->insert([
+                  'year' =>  $year,
+                  'term' =>  $term,
+                  'section_id' =>  $section_id,
+                  'student_id' =>  $students[$s]->student_id,
+                  'subjects_entry' =>  $students[$s]->subjectsEntry,
+                  'total_points' => $students[$s]->points->totalPoints,
+                  'average_points' => $students[$s]->points->averagePoints,
+                  'average_grade' => $students[$s]->points->averageGrade,
+                  'section_position' => $students[$s]->classPosition,
+                  'section_entry' => $class_entry,
+                  'class_entry' => $class_entry,
+                  'created_at' => Carbon::now(),
+                  'updated_at' => Carbon::now(),
+               ]);
+      }
+      return true;
+   }
+
    //save analysed grades distribution
    private function saveAnalysedGradesDistribution($gradesData, $exam_id, $section_id, $students_entry)
    {
@@ -398,12 +425,44 @@ class Score extends Model
       ]);
    }
 
+    //save analysed mean grades distribution
+   private function saveAnalysedMeanGradesDistribution($gradesData, $year, $term, $section_id, $students_entry)
+   {
+      DB::table('mean_grades_distributions')->where(['year' => $year, 'term' => $term, 'section_id' => $section_id])->delete();
+      
+      return MeanGradesDistribution::create([
+         'term' => $term,
+         'year' => $year,
+         'section_id' => $section_id,
+         'students_entry' => $students_entry,
+         'total_points' =>  $gradesData['totalPoints' ],
+         'average_grade' =>  $gradesData['averageGrade' ],
+         'total_students' => $gradesData['totalStudents' ],
+         'average_points' =>  $gradesData['averagePoints' ],
+         'grades' => $this->getCleanGradesDistribution($gradesData['grades']),
+      ]);
+   }
+
    // save graph data
    private function saveGraphData($graphData, $exam_id, $section_id)
    {
       DB::table('graph_data')->where(['exam_id' => $exam_id, 'section_id' => $section_id])->delete();
        return GraphData::create([
          'exam_id' => $exam_id,
+         'section_id' => $section_id,
+         'subjects' => $graphData->subjects,
+         'mean_scores' => $graphData->meanScores,
+      ]);
+   }
+
+   // save mean graph data
+   private function saveMeanGraphData($graphData, $year, $term, $section_id)
+   {
+      DB::table('mean_graph_data')->where(['year' => $year, 'term' => $term, 'section_id' => $section_id])->delete();
+       
+      return MeanGraphData::create([
+         'year' => $year,
+         'term' => $term,
          'section_id' => $section_id,
          'subjects' => $graphData->subjects,
          'mean_scores' => $graphData->meanScores,
@@ -433,6 +492,32 @@ class Score extends Model
 
       return true;
    }
+
+   //save analysed mean subject grades analysis
+   private function saveMeanSubjectsAnalysis($subjects, $year, $term, $section_id)
+   {
+      DB::table('mean_subjects_analysis')->where(['year' => $year, 'term' => $term, 'section_id' => $section_id])->delete();
+      
+      for ($sub=0; $sub <count($subjects) ; $sub++) { 
+       MeanSubjectAnalysis::create([
+         'term' => $term,
+         'year' => $year,
+         'section_id' => $section_id,
+         'subject_id' => $subjects[$sub]->subject_id,
+         'total_points' =>  $subjects[$sub]->subjectTotalPoints,
+         'average_grade' =>  $subjects[$sub]->subjectGrade,
+         'total_students' => $subjects[$sub]->subjectEntry,
+         'class_position' => $subjects[$sub]->subjectPosition,
+         'average_points' => $subjects[$sub]->subjectPoints,
+         'total_marks' => $subjects[$sub]->subjectTotalMarks,
+         'average_marks' => $subjects[$sub]->subjectMeanMarks,
+         'grades' => $this->getCleanGradesDistribution($subjects[$sub]->grades),
+      ]);
+      }
+
+      return true;
+   }
+
 
    //get clean grades distributions
    private function getCleanGradesDistribution($gradesData)
@@ -464,25 +549,66 @@ class Score extends Model
       return true;
    }
 
+   //save student overall position
+   private function saveStudentsOverallMeanPosition($students, $year, $term)
+   {
+      $class_entry = count($students);
+      for ($s=0; $s <count($students) ; $s++) { 
+         DB::table('students_analysed_mean_exams')
+            ->where(['student_id' => $students[$s]->student_id, 'year' => $year, 'term' => $term])
+            ->update([
+               'class_position' => $students[$s]->classPosition,
+               'class_entry' => $class_entry,
+            ]);
+      }
+      return true;
+   }
+
    // fetch from the database specific student subject scores in a given exam
    private function fetchStudentSubjectScores($student_id, $exam_id)
    {
       return DB::table('scores')->where(['student_id' => $student_id, 'exam_id' => $exam_id])->get();
    }
 
+   // fetch from the database specific student subject scores in a given exam
+   private function fetchStudentMeanSubjectScores($student_id, $class_numeric, $term, $year)
+   {
+      return DB::table('mean_scores')->where([
+         'student_id' => $student_id, 
+         'class_numeric' => $class_numeric,
+         'term' => $term,
+         'year' => $year
+         ])->select(
+            'score_id', 
+            'class_numeric', 
+            'student_id', 
+            'section_id', 
+            'subject_id', 
+            'score', 
+            'term', 
+            'year')
+         ->get();
+   }
+   
+
    // fetch from the database specific student analysed subject scores in a given exam
    private function fetchStudentAnalysedSubjectScores($student_id, $exam_id)
-   {
+   {  
       return DB::table('students_analysed_scores')
                ->join('scores' , 'scores.score_id', '=', 'students_analysed_scores.score_id')
+               ->join('exams' , 'exams.exam_id', '=', 'students_analysed_scores.exam_id')
+               ->join('subjects' , 'subjects.subject_id', '=', 'scores.subject_id')
                ->select(
+                  'subject_name',
                   'students_analysed_scores.*',
                   'exam_record_id',
-                  'class_numeric',
+                  'scores.class_numeric',
                   'student_id',
                   'section_id',
-                  'subject_id',
-                  'score'
+                  'scores.subject_id',
+                  'conversion',
+                  'score',
+                  DB::raw('(score * conversion) as calculatedScore')
                )
                ->where(['student_id' => $student_id, 'scores.exam_id' => $exam_id])
                ->get();
@@ -726,6 +852,131 @@ class Score extends Model
        //$points->compulsorySubs =  count($compulsorySubjects );
        $points->averagePoints = number_format(round($totalPoints/$subjectsCount, 2), 2);
        $points->averageGrade = $overallGrading->getOverallGrading($points->totalPoints, $exam->class_numeric)['grade_name'];
+       return $points;
+   }
+
+   //calculate term mean total points
+    private function calculateMeanTotalPoints($subjectScores, $class_numeric)
+   {
+       $totalPoints = 0;
+       $subjectsCount = 0;
+       $points = new stdClass;
+       //$exam = Exam::find($exam_id);
+       $subjectGrading = new SubjectGrading;
+       $overallGrading = new OverallGrading();
+       $schoolSubjects = $this->getSchoolSubjects();
+       $form = Form::where('form_numeric', $class_numeric)->first(); 
+       $compulsorySubjects = $this->getSubjectsByOptionality('Compulsory');
+       $studentCompulsory = $this->getStudentSubjectScoresOptionality($subjectScores)['compulsory'];
+
+       if(
+         count($subjectScores) == 0 
+         || is_null($subjectScores) 
+         || $subjectScores->count() < $form->min_subs
+         || count($studentCompulsory) < count($compulsorySubjects)
+       ){
+          $points->averagePoints = '0';
+          $points->totalPoints = '0';
+          $points->averageGrade = '--';
+          return $points;
+       }
+
+       for ($s=0; $s <count($subjectScores) ; $s++) 
+       { 
+         $subjectScores[$s]->subjectScore = $subjectScores[$s]->score; 
+         $subjectScores[$s]->subjectGrade = $subjectGrading->getSubjectGrading($subjectScores[$s]->subjectScore, $subjectScores[$s]->subject_id, $class_numeric)['grade_name'];
+         $subjectScores[$s]->subjectPoints = $subjectGrading->getSubjectPoints($subjectScores[$s]->subjectGrade);
+       }
+
+       switch ($class_numeric) 
+       {
+          case 1:
+          case 2:
+                for ($s=0; $s <count($subjectScores) ; $s++) { 
+                    $totalPoints += $subjectScores[$s]->subjectPoints;
+                    $subjectsCount = $subjectsCount + 1;
+                }
+          break;
+
+          case 3:
+          case 4:
+               $sciences = array();
+               $humanities = array();
+               $technicals = array();
+               for ($sub=0; $sub <count($schoolSubjects) ; $sub++) 
+               { 
+                  for ($score=0; $score <count($subjectScores) ; $score++) 
+                  { 
+                    
+                     ///add points for maths to total points
+                     if ($subjectScores[$score]->subject_id == $schoolSubjects[$sub]->subject_id 
+                         && $schoolSubjects[$sub]->group == 'Mathematics' ) {
+                         $totalPoints += $subjectScores[$score]->subjectPoints;
+                         $subjectsCount = $subjectsCount + 1;
+                         break;
+                     }
+
+                     ///add points for languages to total points
+                     if ($subjectScores[$score]->subject_id == $schoolSubjects[$sub]->subject_id 
+                         && $schoolSubjects[$sub]->group == 'Languages' ) {
+                         $totalPoints += $subjectScores[$score]->subjectPoints;
+                         $subjectsCount = $subjectsCount + 1;
+                         break;
+                     }
+
+                     ///create an array for Sciences
+                     if ($subjectScores[$score]->subject_id == $schoolSubjects[$sub]->subject_id 
+                         && $schoolSubjects[$sub]->group == 'Sciences' ) {
+                         array_push($sciences, $subjectScores[$score]);
+                         break;
+                     }
+
+                     ///create an array for Humanities
+                     if ($subjectScores[$score]->subject_id == $schoolSubjects[$sub]->subject_id 
+                         && $schoolSubjects[$sub]->group == 'Humanities' ) {
+                         array_push($humanities, $subjectScores[$score]);
+                         break;
+                     }
+
+                       ///create an array for Technicals
+                     if ($subjectScores[$score]->subject_id == $schoolSubjects[$sub]->subject_id 
+                         && $schoolSubjects[$sub]->group == 'Technicals' ) {
+                         array_push($technicals, $subjectScores[$score]);
+                         break;
+                     }
+                  }//end for loop : SCORES
+               }//end for loop : SCHOOL SUBJECTS
+
+                //add  two best sciences to the total points
+                usort($sciences, 'static::sortSubjectsByPoints');
+                if (count($sciences)>=2) 
+                {
+                  $totalPoints += $sciences[0]->subjectPoints + $sciences[1]->subjectPoints;
+                  $subjectsCount = $subjectsCount + 2;
+                }
+
+                //add the best humanities to the total points
+                usort($humanities, 'static::sortSubjectsByPoints');
+                if (count($humanities)>=1) 
+                {
+                  $totalPoints += $humanities[0]->subjectPoints;
+                  $subjectsCount = $subjectsCount + 1;
+                }
+
+                 //add the best technicals to the total points
+                usort($technicals, 'static::sortSubjectsByPoints');
+                if (count($technicals)>=1) 
+                {
+                  $totalPoints += $technicals[0]->subjectPoints;
+                  $subjectsCount = $subjectsCount + 1;
+                }
+                break;
+       }
+
+       $points->totalPoints = $totalPoints;
+       //$points->compulsorySubs =  count($compulsorySubjects );
+       $points->averagePoints = number_format(round($totalPoints/$subjectsCount, 2), 2);
+       $points->averageGrade = $overallGrading->getOverallGrading($points->totalPoints, $class_numeric)['grade_name'];
        return $points;
    }
 
@@ -1284,4 +1535,268 @@ class Score extends Model
        return $graphData;
    }
 
+   ////////...TERM AVERAGE .....//////////
+   //get class students single term average results
+   public function fetchClassStudentsSingleMeanExamResults($exams, $class_numeric, $year, $term)
+   {
+      $students = Student::getStudentsByClassNumeric($class_numeric)->toArray();
+      $studentScores = $this->getStudentsTermMeanScores($students, $exams, $class_numeric, $year, $term);
+      usort($students, array($this, 'sortStudentsByPoints'));
+
+      $gradesData = $this->getGradeDistribution($students);
+      $subjects =  $this->getSubjectsAnalysis($students, $class_numeric);
+      $graphData = $this->getSubjectsAnalysisGraphData($subjects);
+
+      //Save students overall mean class position
+      $this->saveStudentsOverallMeanPosition($students, $year, $term);
+
+      //Save analysed grades data
+		$this->saveAnalysedMeanGradesDistribution($gradesData, $year, $term, null, count($students));
+
+		//Save analysed grades data
+		$this->saveMeanSubjectsAnalysis($subjects, $year, $term, null);
+
+		//Save graph data
+		$this->saveMeanGraphData($graphData, $year, $term, null);
+
+      return [
+         'students' => $students,
+         'gradesData' => $gradesData,
+         'subjects' => $subjects,
+         'graphData' => $graphData
+      ];
+   }
+
+    //Get section analysed term average scores single exam results
+   public function fetchSectionsStudentsSingleMeanExamResults($exams, $class_numeric, $year, $term)
+   {
+      $sections = Section::getSectionsByClassNumeric($class_numeric);
+      for ($s=0; $s <count($sections); $s++) {
+          $students = Student::getStudentsBySectionId($sections[$s]->section_id)->toArray();
+          $sections[$s]->students = $this->getStudentsTermMeanScores($students, $exams, $class_numeric, $year, $term);
+          $sections[$s]->gradesData = $this->getGradeDistribution($sections[$s]->students);
+			 $sections[$s]->subjects = $this->getSubjectsAnalysis($sections[$s]->students, $class_numeric);
+			 $sections[$s]->graphData = $this->getSubjectsAnalysisGraphData($sections[$s]->subjects);
+
+			 //Save students analysed exam
+			 $this->saveAnalysedStudentMeanExam($sections[$s]->students, $sections[$s]->section_id, count($sections[$s]->students), $year, $term);
+
+			 //Save analysed grades data
+			 $this->saveAnalysedMeanGradesDistribution($sections[$s]->gradesData, $year, $term, $sections[$s]->section_id, count($sections[$s]->students));
+
+			//Save analysed grades data
+			$this->saveMeanSubjectsAnalysis($sections[$s]->subjects, $year, $term, $sections[$s]->section_id);
+
+		  //Save graph data
+			$this->saveMeanGraphData($sections[$s]->graphData, $year, $term, $sections[$s]->section_id);
+      }
+      return $sections;
+   }
+
+    //Get section analysed single exam results
+   public function fetchSectionsAnalysedTermAverageExamResults($exams, $class_numeric, $year, $term)
+   {
+      $sections = Section::getSectionsByClassNumeric($class_numeric);
+      for ($s=0; $s <count($sections) ; $s++) {
+          
+      }
+      return $sections;
+   }
+
+   //get students analysed average scores  for a term
+   private function getStudentsTermMeanScores($students, $exams, $class_numeric, $year, $term)
+   {
+      $form = Form::where('form_numeric', $class_numeric)->first(); 
+      for ($s=0; $s <count($students) ; $s++) 
+      { 
+			  $students[$s]->subjectScores = [];
+			  $students[$s]->subjectsEntry = 0;  
+           $students[$s]->otherExams = $this->fetchStudentAnalysedTermSubjectScores($students[$s]->student_id, $exams);  
+           $meanSubjectScores = $this->getCalculatedTermSubjectScores($students[$s]->otherExams, $students[$s]->student_id);
+           
+           $scores = $this->getStudentTermMeanSubjectsScores($students[$s]->student_id, $meanSubjectScores, $exams, $year, $term, $class_numeric);
+           $students[$s]->subjectsEntry = $this->getStudentSubjectEntry($scores);
+           $students[$s]->subjectScores = $this->getStudentMeanSubjectsScores($students[$s]->student_id, $year, $term, $class_numeric);
+			  $students[$s]->points = $this->calculateMeanTotalPoints($scores, $class_numeric);
+			  $students[$s]->averagePoints = $students[$s]->points->averagePoints;
+      }
+
+      //Loop through students with already assigned properties to assign them positions
+      for ($stud=0; $stud <count($students) ; $stud++)
+      { 
+         $students[$stud]->classPosition = $this->assignStudentPosition($students[$stud]->student_id, $students, $form->min_subs);
+      }
+
+      usort($students, array($this, 'sortStudentsByPoints'));
+         
+      return $students;
+   }
+
+   private function fetchStudentAnalysedTermSubjectScores($student_id, $exams)
+   {
+      for ($s=0; $s <count($exams); $s++) 
+      { 
+         //$exams[$s]['subjectScores'] = $this->getStudentAnalysedSubjectsScores($exam->class_numeric, $subjectScores);
+         $exams[$s]['examDetails'] = $this->fetchStudentAnalysedExamDetails($student_id, $exams[$s]['exam_id']);
+         $exams[$s]['subjectScores'] = $this->fetchStudentAnalysedSubjectScores($student_id, $exams[$s]['exam_id']);
+      }
+      return $exams;
+   }
+
+   private function getCalculatedTermSubjectScores($exams, $student_id)
+   {
+      $student = Student::find($student_id);
+      $subjects = $this->getStudentSubjectsCombination($student->student_user_id);
+      //$subjects = $this->getSchoolSubjects()
+      for ($sub=0; $sub <count($subjects) ; $sub++) { 
+         $subjects[$sub]->score = 0;
+         for ($e=0; $e <count($exams) ; $e++) 
+         { 
+            for ($score=0; $score <count($exams[$e]['subjectScores']); $score++) { 
+               if ($subjects[$sub]->subject_id == $exams[$e]['subjectScores'][$score]->subject_id 
+                  && $exams[$e]['subjectScores'][$score]->student_id == $student_id
+                  ) {
+                  $subjects[$sub]->score = round($subjects[$sub]->score + $exams[$e]['subjectScores'][$score]->calculatedScore);
+               }
+            }
+         }
+      }
+      return $subjects;
+   }
+
+    // get specific student subject scores in a given exam
+   private function getStudentTermMeanSubjectsScores($student_id, $subjectScores, $exams, $year, $term, $class_numeric)
+   {
+      //return $subjectScores;
+      for ($s=0; $s <count($subjectScores) ; $s++) 
+      { 
+         for ($e=0; $e <count($exams); $e++) { 
+            $this->deleteStudentMeanSubjectScore($student_id, $exams[$e], $subjectScores[$s]->subject_id);
+            $this->saveStudentMeanSubjectScore($student_id, $exams[$e], $subjectScores[$s]->subject_id, $subjectScores[$s]->score);
+         }
+      }
+
+      return $this->fetchStudentMeanSubjectScores($student_id, $class_numeric, $term, $year);
+      //return $subjectScores;
+   }
+   
+   // get student mean term subject scores
+   private function getStudentsMeanTermScores($students, $exam_id)
+   {
+      $exam = Exam::find($exam_id);
+      $form = Form::where('form_numeric', $exam->class_numeric)->first(); 
+      for ($s=0; $s <count($students) ; $s++) 
+      { 
+         $studentSubject = new StudentSubject();
+         $students[$s]->subjectScores = [];
+         $students[$s]->subjectsEntry = 0;
+
+         $scores = $this->fetchStudentSubjectScores($students[$s]->student_id, $exam_id);
+         //$subjectsCombination = $studentSubject->getStudentSubjects($students[$s]->student_user_id);
+         $students[$s]->subjectScores = $this->getStudentSubjectsScores($students[$s]->student_id, $exam_id);
+         $students[$s]->subjectsEntry = $this->getStudentSubjectEntry($scores);
+         $students[$s]->points = $this->calculateTotalPoints($scores, $exam_id);
+         $students[$s]->averagePoints = $students[$s]->points->averagePoints;
+      }
+
+      //Loop through students with already assigned properties to assign them positions
+      for ($stud=0; $stud <count($students) ; $stud++)
+      { 
+         $students[$stud]->classPosition = $this->assignStudentPosition($students[$stud]->student_id, $students, $form->min_subs);
+      }
+
+      usort($students, array($this, 'sortStudentsByPoints'));
+      return $students;
+   }
+
+   // get specific student mean subject scores in a given exam
+   private function getStudentMeanSubjectsScores($student_id, $year, $term, $class_numeric)
+   {
+     // $exam = Exam::find($exam_id);
+      //$form = Form::where('form_numeric', $class_numeric)->first(); 
+      $student = Student::find($student_id);
+      $schoolSubjects = $this->getSchoolSubjects();
+      $subjectScores = $this->fetchStudentMeanSubjectScores($student_id, $class_numeric, $term, $year);
+      
+      for ($sub=0; $sub <count($schoolSubjects) ; $sub++) 
+      { 
+         $subjectGrading = new SubjectGrading;
+         $schoolSubjects[$sub]->subjectScore = '--';
+         $schoolSubjects[$sub]->subjectGrade = '';
+         $schoolSubjects[$sub]->subjectPoints = '';
+         $schoolSubjects[$sub]->subjectPosition = '';
+         $schoolSubjects[$sub]->score_id = '';
+         
+         for ($score=0; $score <count($subjectScores) ; $score++) 
+         { 
+            $studentsClassSubjectScores = $this->fetchStudentsMeanSubjectScores($subjectScores[$score]->subject_id, null, $year, $term, $class_numeric);
+            $studentsSectionSubjectScores = $this->fetchStudentsMeanSubjectScores($subjectScores[$score]->subject_id, $student->section_id, $year, $term, $class_numeric);
+            if ($schoolSubjects[$sub]->subject_id == $subjectScores[$score]->subject_id) 
+            {
+                $schoolSubjects[$sub]->score_id = $subjectScores[$score]->score_id; 
+                $schoolSubjects[$sub]->subjectScore = $subjectScores[$score]->score; 
+                $schoolSubjects[$sub]->subjectGrade = $subjectGrading->getSubjectGrading($subjectScores[$score]->score, $subjectScores[$score]->subject_id, $class_numeric)['grade_name'];
+                $schoolSubjects[$sub]->subjectPoints  = $subjectGrading->getSubjectPoints($schoolSubjects[$sub]->subjectGrade);
+                $schoolSubjects[$sub]->classPosition  = $this->getStudentSubjectPosition($studentsClassSubjectScores, $subjectScores[$score]->score_id, count($studentsClassSubjectScores));
+                $schoolSubjects[$sub]->sectionPosition  = $this->getStudentSubjectPosition($studentsSectionSubjectScores, $subjectScores[$score]->score_id, count($studentsSectionSubjectScores));
+                
+                //Save analysed subject score
+                //$this->saveAnalysedSubjectScore($exam_id, $subjectScores[$score]->score_id, $schoolSubjects[$sub]);
+            }
+         }
+      }
+      return $schoolSubjects;
+   }
+
+   // fetch from the database students subject scores in a given exam
+   private function fetchStudentsMeanSubjectScores($subject_id, $section_id, $year, $term, $class_numeric)
+   {
+      if (is_null($section_id)) {
+         return DB::table('mean_scores')->where([
+               'term' => $term,
+               'year' => $year,
+               'subject_id' => $subject_id,
+               'class_numeric' => $class_numeric,
+           ])->get()->toArray();
+      }
+
+      return DB::table('mean_scores')->where([
+               'term' => $term,
+               'year' => $year,
+               'subject_id' => $subject_id,
+               'section_id' => $section_id,
+               'class_numeric' => $class_numeric,
+      ])->get()->toArray();
+   }
+
+
+
+   //save Student Mean SubjectScore
+   private function saveStudentMeanSubjectScore($student_id, $exam, $subject_id, $score)
+   {
+      $student = Student::find($student_id);
+      return DB::table('mean_scores')->insert([
+               'score' => $score, 
+               'term' => $exam['term'],
+               'year' => $exam['year'],
+               'subject_id' => $subject_id,
+               'student_id' => $student_id, 
+               'section_id' => $student->section_id, 
+               'class_numeric' => $exam['class_numeric'],
+               'created_at' => Carbon::now(),
+               'updated_at' => Carbon::now(),
+        ]);
+   }
+
+   //delete Student Mean SubjectScore
+   private function deleteStudentMeanSubjectScore($student_id, $exam, $subject_id)
+   {
+      return DB::table('mean_scores')->where([
+               'term' => $exam['term'],
+               'year' => $exam['year'],
+               'subject_id' => $subject_id,
+               'student_id' => $student_id, 
+               'class_numeric' => $exam['class_numeric'],
+      ])->delete();
+   }
 }

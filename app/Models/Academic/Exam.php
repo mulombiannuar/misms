@@ -18,4 +18,18 @@ class Exam extends Model
                    ->join('forms', 'forms.form_numeric', '=', 'exams.class_numeric')
                    ->get();
     }
+
+    
+    public static function getSingleTermExams($class_numeric, $year, $term)
+    {
+        return Exam::orderBy('name', 'asc')
+                   ->join('forms', 'forms.form_numeric', '=', 'exams.class_numeric')
+                   ->select('exam_id','term','name', 'class_numeric', 'converted', 'conversion', 'year')
+                   ->where([
+                    'class_numeric' => $class_numeric,
+                    'year' => $year,
+                    'term' => $term
+                   ])
+                   ->get()->toArray();
+    }
 }

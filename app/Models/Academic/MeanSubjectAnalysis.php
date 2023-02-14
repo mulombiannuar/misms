@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Models\Academic;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class MeanSubjectAnalysis extends Model
+{
+    use HasFactory;
+    protected $table = 'mean_subjects_analysis';
+
+    protected $fillable = [
+        'year', 
+        'term', 
+        'section_id', 
+        'subject_id', 
+        'total_students', 
+        'total_points', 
+        'average_points', 
+        'average_grade',
+        'class_position',
+        'total_marks',
+        'average_marks',
+        'grades', 
+    ];
+
+    protected $casts = [
+        'grades' => 'array'
+    ];
+}

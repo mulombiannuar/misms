@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Academic;
 
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\StoreStudentScoreRequest;
 use App\Http\Requests\StoreStudentsScoresRequest;
 use App\Models\Academic\Exam;
@@ -21,7 +20,6 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 
 class ScoreController extends Controller
@@ -268,6 +266,7 @@ class ScoreController extends Controller
         $pageData = [
 			'page_name' => 'exams',
             'title' => 'Exam Reports',
+            'years' => Session::getYears(),
             'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
         ];
         return view('admin.academic.marks.reports', $pageData);
@@ -416,5 +415,105 @@ class ScoreController extends Controller
             'view' => $view
         ];
     }
+
+    public function termMeanAnalysis()
+    {
+        //return Session::getYears();
+        $pageData = [
+			'page_name' => 'exams',
+            'years' => Session::getYears(),
+            'title' => 'Students Term Mean Scores Analysis',
+            'forms' =>  Form::orderBy('form_numeric', 'asc')->get(),
+        ];
+        return view('admin.academic.marks.term_mean_analysis', $pageData);
+    }
+
+    public function termAnalysedScores(Request $request)
+    {
+        $request->validate([
+            'class' => 'required|string',
+            'year' => 'required|string',
+            'term' => 'required|string'
+        ]);
+        
+        $class_numeric = $request->class;
+        $year = $request->year;
+        $term = $request->term;
+        
+        $score = new Score();
+        $defaultGrades = new DefaultGrade();
+        $exams = Exam::getSingleTermExams($class_numeric, $year, $term);
+        if (count($exams) == 0)         
+        return back()->with('warning', 'You cannot analysed intended scores since no exams found for the selected class, year and term');
+
+        // $sections = $score->fetchSectionsAnalysedTermAverageExamResults($exams, $class_numeric, $year, $term);;
+        //return $score->fetchClassAnalysedTermAverageExamResults($exams, $class_numeric, $year, $term);;
+       
+        $pageData = [
+			'page_name' => 'exams',
+            'title' => 'Term '.$term.' '.$year.' Average Exam',
+            'subjects' => $score->getSchoolSubjects(),
+            'grades' => $defaultGrades->getDefaultGrades(),
+            'form' =>  Form::where('form_numeric', $class_numeric)->first(),
+            'sections' =>  $score->fetchSectionsStudentsSingleMeanExamResults($exams, $class_numeric, $year, $term),
+            'classData' => $score->fetchClassStudentsSingleMeanExamResults($exams, $class_numeric, $year, $term),
+        ];
+        return view('admin.academic.marks.analysed_scores', $pageData);
+    }
+
+    public function meanReportType(Request $request)
+    {
+        $request->validate([
+            'class' => 'required|integer',
+            'reporttype' => 'required|integer',
+            'year' => 'required|integer',
+            'term' => 'required|integer',
+        ]);
+        
+        //return $request;
+
+        $class_numeric = $request->class;
+        $report_type = $request->reporttype;
+        $year = $request->year;
+        $term = $request->term;
+
+        $score = new Score();
+        $defaultGrades = new DefaultGrade();
+        $exams = Exam::getSingleTermExams($class_numeric, $year, $term);
+        if (count($exams) == 0)         
+        return back()->with('warning', 'You cannot analysed intended scores since no exams found for the selected class, year and term');
+        
+        $score = new Score();
+        $graphs = new Graphs();
+        $defaultGrades = new DefaultGrade();
+        $settings = new SettingsController();
+        $activeSesion = Session::getActiveSession();
+        $report = $this->getReportType($report_type);
+       return $sections = $score->fetchSectionsAnalysedTermAverageExamResults($exams, $class_numeric, $year, $term);
+        $classData = $score->fetchClassAnalysedTermAverageExamResults($exams, $class_numeric, $year, $term);
+        
+        $pageData = [
+			'page_name' => 'exams',
+            'sections' =>  $sections,
+            'classData' => $classData,
+            'school' => $settings->getSchoolDetails(),
+            'title' => ucwords($report['report']),
+            'subjects' => $score->getSchoolSubjects(),
+            'grades' => $defaultGrades->getDefaultGrades(),
+            'form' =>  Form::where('form_numeric', $class_numeric)->first(),
+            //'streams' => $score->getStreamsRankingDetails($exam_id, false),
+            'dates' => Session::getClosingAndOpeningDates($activeSesion->session_id),
+            'classSubjectsGraph' => $graphs->getClassSubjectsPeformanceGraph($classData['graphData'])
+        ]; 
+        
+        $orientation = 'landscape';
+        if($report_type == 8) $orientation = 'portrait';
+        $html = view('reports.pdfs.'.$report['view'], $pageData);
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadHTML($html);
+        $pdf->setPaper('A4', $orientation);
+        return $pdf->stream(ucwords($report['report'].'-year-'.$year.'-term-').'-'.$term.'-'.now().'.pdf', array('Attachment' => 0));
+    }
+
 
 }

@@ -207,6 +207,11 @@ Route::middleware(['auth'])->prefix('marks')->name('marks.')->group(function(){
          Route::post('scores/save', 'saveStudentScore')->name('scores.save');
          Route::get('scores/analysis', 'analysis')->name('scores.analysis');
          Route::get('scores/analysed', 'analysedScores')->name('scores.analysed');
+
+         Route::get('scores/term-analysis', 'termMeanAnalysis')->name('scores.term_analysis');
+         Route::get('scores/term-analysed', 'termAnalysedScores')->name('scores.term_analysed');
          Route::resource('scores', ScoreController::class)->except(['index', 'show']);
+
+         Route::get('mean-reports/type', 'meanReportType')->name('mean-reports.type');
     });
 });

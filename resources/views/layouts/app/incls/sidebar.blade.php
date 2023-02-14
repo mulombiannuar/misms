@@ -132,6 +132,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('marks.scores.term_analysis') }}" class="nav-link">
+                                <i class="fa fa-arrow-right nav-icon"></i>
+                                <p>Mean Analysis</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('marks.reports.index') }}" class="nav-link">
                                 <i class="fa fa-arrow-right nav-icon"></i>
                                 <p>Reports</p>

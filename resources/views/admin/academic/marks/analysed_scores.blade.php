@@ -31,8 +31,8 @@
                                     </div>
                                     <div class="card-body">
 
-                                        <table id="table{{ $loop->iteration }}"
-                                            class="table table-sm table-hover table-responsive table-bordered table-head-fixed text-nowrap">
+                                        <table id="table{{ $loop->iteration }}" width="100%"
+                                            class="table table-sm table-hover table-responsive table-bordered table-head-fixed">
                                             <thead>
                                                 <tr>
                                                     <th>S.N</th>

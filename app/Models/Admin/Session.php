@@ -2,6 +2,7 @@
 
 namespace App\Models\Admin;
 
+use App\Models\Academic\Score;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -54,5 +55,11 @@ class Session extends Model
         $dates->closingDate = $closing_date;
         $dates->openingDate = $opening_date;
         return $dates;
+    }
+
+    public static function getYears()
+    {
+        //return DB::table('sessions')->distinct('session')->get();
+        return Score::orderBy('year','desc')->distinct()->get(['year']);
     }
 }
