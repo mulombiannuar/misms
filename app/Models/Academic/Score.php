@@ -573,24 +573,26 @@ class Score extends Model
    // fetch from the database specific student subject scores in a given exam
    private function fetchStudentMeanSubjectScores($student_id, $class_numeric, $term, $year)
    {
-      return DB::table('mean_scores')->where([
-         'student_id' => $student_id, 
-         'class_numeric' => $class_numeric,
-         'term' => $term,
-         'year' => $year
-         ])->select(
+      return DB::table('mean_scores')->join('subjects' , 'subjects.subject_id', '=', 'mean_scores.subject_id')
+          ->where([
+            'student_id' => $student_id, 
+            'class_numeric' => $class_numeric,
+            'term' => $term,
+            'year' => $year
+            ])->select(
             'score_id', 
+            'mean_scores.subject_id', 
+            'subject_name',
             'class_numeric', 
             'student_id', 
             'section_id', 
-            'subject_id', 
             'score', 
             'term', 
             'year')
          ->get();
    }
-   
 
+   
    // fetch from the database specific student analysed subject scores in a given exam
    private function fetchStudentAnalysedSubjectScores($student_id, $exam_id)
    {  
@@ -1597,11 +1599,38 @@ class Score extends Model
    public function fetchSectionsAnalysedTermAverageExamResults($exams, $class_numeric, $year, $term)
    {
       $sections = Section::getSectionsByClassNumeric($class_numeric);
-      for ($s=0; $s <count($sections) ; $s++) {
-          
+      for ($s=0; $s <count($sections) ; $s++) 
+      {
+          $students = Student::getStudentsBySectionId($sections[$s]->section_id)->toArray();
+          $sections[$s]->students = $this->getStudentsAnalysedMeanScores($students, $exams, $class_numeric, $year, $term);
+          //$sections[$s]->gradesData = $this->getAnalysedGradesDistribution($sections[$s]->section_id, $exam_id);
+          //$sections[$s]->subjects = $this->getAnalysedClassSubjects($sections[$s]->section_id, $exam_id, $report_type);
+          //$sections[$s]->graphData = $this->getAnalysedGraphData($sections[$s]->section_id, $exam_id);
+          //$sections[$s]->examDev = $this->calculateClassDeviation($sections[$s]->gradesData, $exam_id);        
       }
       return $sections;
    }
+
+   // get students analysed term mean exam scores
+   private function getStudentsAnalysedMeanScores($students, $exams, $class_numeric, $year, $term)
+   {
+      for ($s=0; $s <count($students) ; $s++) 
+      { 
+         $subjectScores = $this->fetchStudentMeanSubjectScores($students[$s]->student_id, $class_numeric, $term, $year);
+         $students[$s]->subjectScores = $subjectScores;
+         //$students[$s]->subjectScores = $this->getStudentAnalysedSubjectsScores($class_numeric, $subjectScores);
+         // $students[$s]->examDetails = $this->fetchStudentAnalysedExamDetails($students[$s]->student_id, $exam_id);
+         // $students[$s]->averagePoints = $students[$s]->examDetails->average_points;
+         // $students[$s]->studentDev = $this->calculateStudentDeviation($students[$s]->examDetails, $students[$s]->student_id);
+        // $students[$s]->classTeacher = $this->getClassTeacher($students[$s]->examDetails);
+        // $students[$s]->classEntries = $this->getClassEntries($exam_id, $students[$s]->section_id);
+        // $students[$s]->otherExams = $this->fetchStudentAnalysedExams($students[$s]->student_id, $exam_id);
+      }
+
+     // usort($students, array($this, 'sortStudentsByPoints'));
+      return $students;
+   }
+
 
    //get students analysed average scores  for a term
    private function getStudentsTermMeanScores($students, $exams, $class_numeric, $year, $term)
