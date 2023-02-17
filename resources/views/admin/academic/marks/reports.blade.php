@@ -72,11 +72,7 @@
                                         <option value="2">Grades Distribution</option>
                                         <option value="3">Subjects Analysis</option>
                                         <option value="4">Streams Ranking</option>
-                                        <option value="9">Streams Improvement</option>
-                                        <option value="5">Students Improvement</option>
-                                        <option value="6">Subjects Improvement</option>
-                                        {{-- <option value="7">Students Attendance</option> --}}
-                                        <option value="8">Students Report Cards</option>
+                                        <option value="5">Students Report Cards</option>
                                     </x-form.select>
                                     <x-form.select class="col-md-2 col-sm-12" value="" label="Class" name="class">
                                         @foreach ($forms as $form)

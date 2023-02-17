@@ -416,6 +416,46 @@ class ScoreController extends Controller
         ];
     }
 
+    private function getMeanReportType($type)
+    {
+        switch ($type) 
+        {
+            case 1:
+                $report = 'Class Broadsheet';
+                $view = 'mean_class_broadsheet_report';
+                break;
+
+            case 2:
+                $report = 'Grades Distribution';
+                $view = 'mean_grades_distribution_report';
+                break;
+
+            case 3:
+                $report = 'Subjects Analysis';
+                $view = 'mean_subjects_analysis_report';
+                break;
+
+            case 4:
+                $report = 'Streams Ranking';
+                $view = 'mean_streams_ranking_report';
+                break;
+
+            case 5:
+                $report = 'Students Report Cards';
+                $view = 'mean_students_report_cards';
+                break;
+            
+            default:
+                $report = 'Class Broadsheet';
+                $view = 'mean_class_broadsheet_report';
+                break;
+        }
+        return [
+            'report' => $report,
+            'view' => $view
+        ];
+    }
+
     public function termMeanAnalysis()
     {
         //return Session::getYears();
@@ -470,8 +510,6 @@ class ScoreController extends Controller
             'term' => 'required|integer',
         ]);
         
-        //return $request;
-
         $class_numeric = $request->class;
         $report_type = $request->reporttype;
         $year = $request->year;
@@ -488,11 +526,16 @@ class ScoreController extends Controller
         $defaultGrades = new DefaultGrade();
         $settings = new SettingsController();
         $activeSesion = Session::getActiveSession();
-        $report = $this->getReportType($report_type);
-       return $sections = $score->fetchSectionsAnalysedTermAverageExamResults($exams, $class_numeric, $year, $term);
+        $report = $this->getMeanReportType($report_type);
+        $sections = $score->fetchSectionsAnalysedTermAverageExamResults($exams, $class_numeric, $year, $term);
         $classData = $score->fetchClassAnalysedTermAverageExamResults($exams, $class_numeric, $year, $term);
+        $streams = $score->getStreamsMeanRankingDetails($class_numeric, $year, $term);
         
         $pageData = [
+            'year' => $year,
+            'term' => $term,
+            'exams' =>  $exams,
+            'streams' => $streams,
 			'page_name' => 'exams',
             'sections' =>  $sections,
             'classData' => $classData,
@@ -501,13 +544,12 @@ class ScoreController extends Controller
             'subjects' => $score->getSchoolSubjects(),
             'grades' => $defaultGrades->getDefaultGrades(),
             'form' =>  Form::where('form_numeric', $class_numeric)->first(),
-            //'streams' => $score->getStreamsRankingDetails($exam_id, false),
             'dates' => Session::getClosingAndOpeningDates($activeSesion->session_id),
             'classSubjectsGraph' => $graphs->getClassSubjectsPeformanceGraph($classData['graphData'])
         ]; 
         
         $orientation = 'landscape';
-        if($report_type == 8) $orientation = 'portrait';
+        if($report_type == 5) $orientation = 'portrait';
         $html = view('reports.pdfs.'.$report['view'], $pageData);
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadHTML($html);
