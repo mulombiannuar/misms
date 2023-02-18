@@ -35,7 +35,7 @@
                         <th style="border-style: none;">CLASS :
                             {{ $student->studentData->section_numeric . $student->studentData->section_name }}
                         </th>
-                        <th style="border-style: none;">{{ strtoupper($exam->name . ' ') }} </th>
+                        <th style="border-style: none;">{{ strtoupper($exam . ' ') }} </th>
                     </tr>
                 </thead>
             </table>
@@ -47,7 +47,12 @@
                     <tr>
                         <th>CODE</th>
                         <th style="text-align: left">SUBJECT</th>
-                        <th>SCORE</th>
+                        @if (count($exams) != 0)
+                            @foreach ($exams as $exam)
+                                <th>E{{ $loop->iteration }}</th>
+                            @endforeach
+                        @endif
+                        <th>M.SCORE</th>
                         <th>S.P</th>
                         <th>C.P</th>
                         <th style="text-align: left">REMARKS</th>
@@ -60,10 +65,15 @@
                             <tr>
                                 <td style="text-align: center"> {{ $subject->subject_code }}</td>
                                 <td style="text-align: left"> {{ $subject->subject_name }}</td>
+                                @if (count($exams) != 0)
+                                    @foreach ($subject->subjectTermScores as $exam)
+                                        <td>{{ $exam->score . $exam->subject_grade }}</td>
+                                    @endforeach
+                                @endif
                                 <td style="text-align: center"> {{ $subject->subjectScore . $subject->subjectGrade }}
                                 </td>
-                                <td> {{ $subject->subjectSectionPosition }}</td>
-                                <td> {{ $subject->subjectClassPosition }}</td>
+                                <td> {{ $subject->sectionPosition }}</td>
+                                <td> {{ $subject->classPosition }}</td>
                                 <td style="text-align: left"> {{ $subject->subjectRemarks }}</td>
                                 <td style="text-align: center">{{ $subject->subjectTeacher }}</td>
                             </tr>
@@ -135,13 +145,13 @@
                                         <td><strong>STREAM POS :</strong></td>
                                         <td>{{ $student->examDetails->section_position }}</td>
                                         <td><strong>Out Of</strong></td>
-                                        <td>{{ $student->classEntries['sectionEntry'] }}</td>
+                                        <td>{{ $student->examDetails->section_entry }}</td>
                                     </tr>
                                     <tr>
                                         <td><strong>OVERAL POS :</strong></td>
                                         <td>{{ $student->examDetails->class_position }}</td>
                                         <td><strong>Out Of</strong></td>
-                                        <td>{{ $student->classEntries['classEntry'] }}</td>
+                                        <td>{{ $student->examDetails->class_entry }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -150,7 +160,7 @@
                             <table class="inner-table">
                                 <tr>
                                     <td>
-                                        <h3>{{ $student->examDetails->class_position }}/{{ $student->classEntries['classEntry'] }}
+                                        <h3>{{ $student->examDetails->class_position }}/{{ $student->examDetails->class_entry }}
                                         </h3>
                                     </td>
                                 </tr>
@@ -223,7 +233,7 @@
                 <small>
                     Printed on {{ date('F d, Y h:i:sa') }}. &nbsp;&nbsp;&nbsp;&nbsp;
                     Serial No.
-                    {{ 'MISMS/RC/' . $student->studentData->admission_no . '/' . $exam->term . '/' . $exam->year }}
+                    {{ 'MISMS/RC/' . $student->studentData->admission_no . '/' . $term . '/' . $year }}
                     &nbsp;&nbsp;&nbsp;&nbsp; Designed by Mulan Technologies &nbsp;&nbsp;&nbsp; TEL:
                     0703539208 &nbsp;&nbsp; EMAIL : info@mulan.co.ke
                 </small>

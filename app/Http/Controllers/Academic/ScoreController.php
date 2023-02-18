@@ -505,11 +505,12 @@ class ScoreController extends Controller
     {
         $request->validate([
             'class' => 'required|integer',
-            'reporttype' => 'required|integer',
+            'reporttype' => 'required|string',
             'year' => 'required|integer',
             'term' => 'required|integer',
         ]);
-        
+
+        //return $request;
         $class_numeric = $request->class;
         $report_type = $request->reporttype;
         $year = $request->year;
@@ -546,7 +547,10 @@ class ScoreController extends Controller
             'form' =>  Form::where('form_numeric', $class_numeric)->first(),
             'dates' => Session::getClosingAndOpeningDates($activeSesion->session_id),
             'classSubjectsGraph' => $graphs->getClassSubjectsPeformanceGraph($classData['graphData'])
-        ]; 
+        ];
+        
+        if($report_type === 'performance')
+        return view('admin.academic.marks.term_performance', $pageData);
         
         $orientation = 'landscape';
         if($report_type == 5) $orientation = 'portrait';
@@ -556,6 +560,40 @@ class ScoreController extends Controller
         $pdf->setPaper('A4', $orientation);
         return $pdf->stream(ucwords($report['report'].'-year-'.$year.'-term-').'-'.$term.'-'.now().'.pdf', array('Attachment' => 0));
     }
+
+    public function studentMeanReport($student_id, $year, $term, $class_numeric)
+    {
+        $score = new Score();
+        $settings = new SettingsController();
+        $studentData = Student::find($student_id);
+        $activeSesion = Session::getActiveSession();
+        $exams = Exam::getSingleTermExams($class_numeric, $year, $term);
+
+        $student = $score->getStudentAnalysedMeanExamScores($student_id, $exams, $class_numeric, $year, $term);
+        if (is_null($student) || empty($student))  
+        return back()->with('warning', 'No analysed scores records found for this student. Make sure you have analysed this exam scores');
+
+         $pageData = [
+             'year' => $year,
+             'term' => $term,
+             'exams' =>  $exams,
+             'student' => $student,
+             'page_name' => 'exams',
+             'school' => $settings->getSchoolDetails(),
+             'subjects' => $score->getSchoolSubjects(),
+             'exam' => 'Term '.$term.' '.$year.' Report Card',
+             'graph' => Graphs::getStudentPeformanceGraph($student_id),
+             'dates' => Session::getClosingAndOpeningDates($activeSesion->session_id),
+             'title' => ucwords($studentData->admission_no).' Mean Report Card',
+        ]; 
+      
+        $html = view('reports.pdfs.mean_student_report_card', $pageData);
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadHTML($html);
+        $pdf->setOptions(['isRemoteEnabled' => true, 'isHtml5ParserEnabled' => true]);
+        return $pdf->stream('Year-'.$year.'-term-'.$term.'-'.$student->studentData->student_id.'-mean-reportcard-'.$student->studentData->admission_no.'-'.time().'.pdf', array('Attachment' => 0));
+    }
+
 
 
 }

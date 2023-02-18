@@ -238,7 +238,7 @@ class Score extends Model
 
       $student = new stdClass;
       $student->studentData = Student::getStudentByStudentId($student_id);
-      $student->subjectScores = $this->getStudentAnalysedSubjectsScores($student_id, $exam->class_numeric, $subjectScores);
+      $student->subjectScores = $this->getStudentAnalysedSubjectsScores($exam->class_numeric, $subjectScores);
       $student->examDetails = $this->fetchStudentAnalysedExamDetails($student_id, $exam_id);
       $student->averagePoints = $student->examDetails->average_points;
       $student->studentDev = $this->calculateStudentDeviation($student->examDetails, $student_id);
@@ -1814,6 +1814,22 @@ class Score extends Model
 
       usort($students, array($this, 'sortStudentsByPoints'));
       return $students;
+   }
+
+   //get student analysed term mean scores
+   public function getStudentAnalysedMeanExamScores($student_id, $exams, $class_numeric, $year, $term)
+   {
+      $subjectScores = $this->fetchStudentMeanSubjectScores($student_id, $class_numeric, $term, $year);
+     
+      $student = new stdClass;
+      $student->studentData = Student::getStudentByStudentId($student_id);
+      $student->subjectScores = $this->getStudentAnalysedMeanSubjectsScores($exams, $student_id, $class_numeric, $subjectScores, $year, $term);
+      $student->examDetails = $this->fetchStudentAnalysedMeanExamDetails($student_id, $year, $term);
+      $student->averagePoints = $student->examDetails->average_points;
+      $student->classTeacher = $this->getMeanClassTeacher($student->examDetails, $class_numeric);
+      $student->studentDev = $this->calculateStudentMeanDeviation($student->examDetails, $student_id);
+      $student->otherExams = $this->fetchStudentAnalysedExams($student_id, null);
+      return $student;
    }
 
 

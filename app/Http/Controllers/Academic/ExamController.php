@@ -86,7 +86,7 @@ class ExamController extends Controller
     {
         $score = new Score();
         $exam = Exam::find($id);
-        //return $students = $score->getStudentsAnalysedExamScores($id);
+        //return $score->getStudentsAnalysedExamScores($id);
         $pageData = [
 			'page_name' => 'exams',
             'exam' =>  $exam,

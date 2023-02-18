@@ -203,6 +203,7 @@ Route::middleware(['auth'])->prefix('marks')->name('marks.')->group(function(){
          Route::get('reports', 'reports')->name('reports.index');
          Route::get('reports/type', 'reportType')->name('reports.type');
          Route::get('student-report/student={student_id}&exam={exam}', 'studentReport')->name('reports.studentreport');
+         Route::get('student-mean-report/student={student_id}&year={year}&term={term}&class={class_numeric}', 'studentMeanReport')->name('reports.studentmeanreport');
          
          Route::post('scores/save', 'saveStudentScore')->name('scores.save');
          Route::get('scores/analysis', 'analysis')->name('scores.analysis');
@@ -213,5 +214,6 @@ Route::middleware(['auth'])->prefix('marks')->name('marks.')->group(function(){
          Route::resource('scores', ScoreController::class)->except(['index', 'show']);
 
          Route::get('mean-reports/type', 'meanReportType')->name('mean-reports.type');
+         Route::get('mean-peformance', 'meanReportType')->name('mean-peformance');
     });
 });
