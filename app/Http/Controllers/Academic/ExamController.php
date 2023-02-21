@@ -12,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 
 class ExamController extends Controller
 {
@@ -205,6 +206,12 @@ class ExamController extends Controller
     public function destroy($id)
     {
         Exam::where('exam_id', $id)->delete();
+        DB::table('scores')->where('exam_id', $id)->delete();
+        DB::table('graph_data')->where('exam_id', $id)->delete();
+        DB::table('submitted_scores')->where('exam_id', $id)->delete();
+        DB::table('subjects_analysis')->where('exam_id', $id)->delete();
+        DB::table('grades_distribution')->where('exam_id', $id)->delete();
+        DB::table('students_analysed_exams')->where('exam_id', $id)->delete();
 
         //Save audit trail
         $activity_type = 'Exam Deletion';

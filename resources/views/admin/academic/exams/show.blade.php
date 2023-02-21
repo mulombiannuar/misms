@@ -87,7 +87,7 @@
                         <!-- documents -->
                         <div class="card card-warning">
                             <div class="card-header">
-                                <h3 class="card-title"><i class="fa fa-users"></i>Exam Students ({{ count($students) }})
+                                <h3 class="card-title"><i class="fa fa-users"></i> Exam Students ({{ count($students) }})
                                 </h3>
                             </div>
                             <div class="card-body">

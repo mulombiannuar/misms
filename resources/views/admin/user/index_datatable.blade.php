@@ -8,7 +8,7 @@
                 <x-buttons.button class="margin mb-2  btn-secondary" buttonName="Add New User" buttonIcon="fa-plus" />
             </a>
         </div>
-        <x-card class="card-primary" icon="fa-users" title="Manage Users ({{ $users }})">
+        <x-card class="card-secondary" icon="fa-users" title="Manage Users ({{ $users }})">
             <x-table.table id="datatable">
                 <x-table.thead>
                     <th>S.N</th>
@@ -33,8 +33,8 @@
                 serverSide: true,
                 ajax: "{{ route('admin.users.get') }}",
                 columns: [{
-                        data: 'id',
-                        name: 'id'
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex'
                     },
                     {
                         data: 'name',

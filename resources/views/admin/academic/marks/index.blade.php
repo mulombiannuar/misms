@@ -120,8 +120,8 @@
                 serverSide: true,
                 ajax: "{{ route('marks.submitted-scores.getscores') }}",
                 columns: [{
-                        data: 'subm_id',
-                        name: 'subm_id'
+                        data: 'DT_RowIndex',
+                        name: 'DT_RowIndex'
                     },
                     {
                         data: 'created_at',

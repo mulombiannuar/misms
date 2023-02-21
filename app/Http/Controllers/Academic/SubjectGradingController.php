@@ -19,6 +19,7 @@ class SubjectGradingController extends Controller
     public function index()
     {
         $grade = new DefaultGrade();
+        //return  $grade->getDefaultGrades();
         $pageData = [
 			'page_name' => 'gradings',
             'title' => 'Manage Subjects Gradings',

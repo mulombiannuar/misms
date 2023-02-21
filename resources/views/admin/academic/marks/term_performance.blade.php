@@ -3,7 +3,7 @@
 @section('content')
     <!-- Main content -->
     <x-section>
-        <x-card class="card-secondary" icon="fa-edit" :title="$title">
+        <x-card class="card-secondary" icon="fa-users" :title="$title">
             @if (count($classData['students']) == 0)
                 <div class="alert alert-info">
                     No students found for this exam or marks analysis has not taken place

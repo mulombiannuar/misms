@@ -29,6 +29,7 @@ class SubmittedScoresController extends Controller
      */
     public function index()
     {
+        //return $this->getSubmittedScores();
         $pageData = [
 			'page_name' => 'exams',
             'title' => 'Students Scores Records',

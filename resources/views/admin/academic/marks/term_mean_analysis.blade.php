@@ -14,7 +14,7 @@
                         @endforeach
                     </x-form.select>
 
-                    <x-form.select class="col-md-4 col-sm-12" value="" label="year" name="year">
+                    <x-form.select class="col-md-4 col-sm-12" value="" label="Year" name="year">
                         <option value="">- Select Year -</option>
                         @foreach ($years as $year)
                             <option value="{{ $year->year }}">{{ $year->year }}</option>

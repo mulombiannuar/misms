@@ -40,7 +40,7 @@ class SubmittedScore extends Model
          return $scores;
     }
 
-    private function submittedScores()
+    private static function submittedScores()
     {
        return DB::table('submitted_scores')
                   ->join('subjects', 'subjects.subject_id', '=', 'submitted_scores.subject_id')

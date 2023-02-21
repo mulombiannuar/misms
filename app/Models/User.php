@@ -28,6 +28,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_student'
     ];
 
     /**
@@ -108,7 +109,7 @@ class User extends Authenticatable
     public static function getUsers()
     {
        return  DB::table('users')
-                 ->where(['deleted_at' => null, 'accessibility'=> 1])
+                 ->where(['deleted_at' => null, 'accessibility'=> 1, 'is_student' => 0])
                  ->orderBy('name', 'asc')
                  ->get();
     }

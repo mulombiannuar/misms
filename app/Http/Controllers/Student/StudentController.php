@@ -100,8 +100,8 @@ class StudentController extends Controller
             'password_confirmation' => $this->setStudentPassword(),
             'is_student' => 1
         ];
-        $createStudent = new CreateNewUser();
-        $newStudent = $createStudent->create($studentData);
+        //$createStudent = new CreateNewUser();
+        $newStudent = User::create($studentData);
         $newStudent->attachRole('student');
 
         $studentImage = strtolower($request->gender) == 'male' ? 'icon-male.png' : 'icon-female.png';
